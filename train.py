@@ -26,18 +26,18 @@ def train(model, optimizer, criterion, iterator):
     return epoch_loss / len(iterator)
 
 # Общая функция обучения и валидации
-def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, train_loader, val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,eval_accuracy_all):
+def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, train_loader, val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,eval_accuracy_all,logging=True):
     train_loss = 0
     count_bad = 0
     for epoch in range(epochs, 1000):
         print(f'Epoch: {epoch + 1:02}')
         start_time = time.time()
         print("-----------train------------")
-        train_loss = train(model, optimizer, criterion, train_loader)
+        train_loss = train(model, optimizer, criterion, train_loader,logging=logging)
         print("\n-----------valid------------")
-        valid_loss = evaluate(model, criterion, val_loader)
+        valid_loss = evaluate(model, criterion, val_loader,logging=logging)
         print("-----------eval------------")
-        eval_loss_cer, eval_accuracy = validate(model, val_loader, show=20)
+        eval_loss_cer, eval_accuracy = validate(model, val_loader, show=20,logging=logging)
         scheduler.step(eval_loss_cer)
         valid_loss_all.append(valid_loss)
         train_loss_all.append(train_loss)
@@ -69,8 +69,9 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
             }, '/content/gdrive/MyDrive/log/resnet50_trans_last.pt')
             print('Save model')
 
-        #wandb.log({'train_loss_wer': train_loss, "valid_loss_wer": valid_loss, 'eval_accuracy_wer': 100 - eval_accuracy,
-         #          'eval_loss_cer': eval_loss_cer})
+        if logging:
+            wandb.log({'train_loss_wer': train_loss, "valid_loss_wer": valid_loss, 'eval_accuracy_wer': 100 - eval_accuracy,
+                   'eval_loss_cer': eval_loss_cer})
 
         print(f'Time: {time.time() - start_time}s')
         print(f'Train Loss: {train_loss:.4f}')
@@ -92,7 +93,7 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
 
 
 
-def validate(model, dataloader,show=70):
+def validate(model, dataloader,show=70,logging=True):
     idx2char = dataloader.dataset.idx2char
     char2idx = dataloader.dataset.char2idx
     model.eval()
@@ -142,7 +143,8 @@ def validate(model, dataloader,show=70):
             if show > show_count:
                 # plt.imshow(img)
                 # plt.show()
-                #wandb.log({"Validation Examples": wandb.Image(img, caption="Pred: {} Truth: {}".format(out_char, real_char))})
+                if logging:
+                    wandb.log({"Validation Examples": wandb.Image(img, caption="Pred: {} Truth: {}".format(out_char, real_char))})
                 show_count += 1
                 print('Real:', real_char)
                 print('Pred:', out_char)
