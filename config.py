@@ -29,7 +29,7 @@ class Hparams():
 class Paths():
     def __init__(self):
         # log folder
-        self.log = r"/content/drive/MyDrive/log"
+        self.log = r"/content/drive/MyDrive/log/"
 
         # checkpoint for training
         self.chk = None
