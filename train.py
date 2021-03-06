@@ -4,6 +4,7 @@ from utilities import *
 from train import *
 from config import *
 from model import *
+import wandb
 
 def train(model, optimizer, criterion, iterator,logging=True):
     model.train()
@@ -54,7 +55,7 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
                 'train_loss_all': train_loss_all,
                 'eval_loss_cer_all': eval_loss_cer_all,
                 'eval_accuracy_all': eval_accuracy_all,
-            }, '/content/gdrive/MyDrive/log/resnet50_trans_%.3f.pt' % (best_eval_loss_cer))
+            }, path.log+'resnet50_trans_%.3f.pt' % (best_eval_loss_cer))
             print('Save best model')
         else:
             count_bad += 1
@@ -66,7 +67,7 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
                 'train_loss_all': train_loss_all,
                 'eval_loss_cer_all': eval_loss_cer_all,
                 'eval_accuracy_all': eval_accuracy_all,
-            }, '/content/gdrive/MyDrive/log/resnet50_trans_last.pt')
+            }, path.log+'resnet50_trans_last.pt')
             print('Save model')
 
         if logging:
@@ -77,17 +78,7 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
         print(f'Train Loss: {train_loss:.4f}')
         print(f'Val   Loss: {valid_loss:.4f}')
         print(f'Eval  CER: {eval_loss_cer:.4f}')
-        print(f'Eval accuracy: {eval_accuracy:.4f}')
-        plt.clf()
-        plt.plot(valid_loss_all[-20:])
-        plt.plot(train_loss_all[-20:])
-        plt.savefig('/content/gdrive/MyDrive/log/all_loss.png')
-        plt.clf()
-        plt.plot(eval_loss_cer_all[-20:])
-        plt.savefig('/content/gdrive/MyDrive/log/loss_cer.png')
-        plt.clf()
-        plt.plot(eval_accuracy_all[-20:])
-        plt.savefig('/content/gdrive/MyDrive/log/eval_accuracy.png')
+        print(f'Eval accuracy: {100 - eval_accuracy:.4f}')
         if count_bad > 19:
             break
 
