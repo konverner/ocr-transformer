@@ -119,7 +119,7 @@ def char_error_rate(p_seq1, p_seq2):
     c_seq1 = [chr(p2c[p]) for p in p_seq1]
     c_seq2 = [chr(p2c[p]) for p in p_seq2]
     return editdistance.eval(''.join(c_seq1),
-                             ''.join(c_seq2)) / len(c_seq2)
+                             ''.join(c_seq2)) / max(len(c_seq1),len(c_seq2))
 
 
 # подгружает изображения, меняет их до необходимого размера и нормирует."""
