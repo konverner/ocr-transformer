@@ -187,7 +187,7 @@ def load_from_checkpoint(model,chk_path):
         print('weights have been loaded')
     return model, epochs, best_eval_loss_cer, valid_loss_all, train_loss_all, eval_accuracy_all, eval_loss_cer_all
 
-def evaluate(model, criterion, iterator):
+def evaluate(model, criterion, iterator,logging=True):
     model.eval()
     epoch_loss = 0
     with torch.no_grad():
@@ -199,7 +199,7 @@ def evaluate(model, criterion, iterator):
     return epoch_loss / len(iterator)
 
 
-def test(model,image_dir,trans_dir):
+def test(model,image_dir,trans_dir,logging=True):
     img2trans = dict()
     raw = open(trans_dir,'r',encoding='utf-8').read()
     temp = raw.split('\n')
