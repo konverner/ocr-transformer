@@ -23,19 +23,19 @@ class Hparams():
         self.dropout = 0.1
         
         # IMAGE SIZE
-        self.width = 256
+        self.width = 128
         self.height = 32
 
 class Paths():
     def __init__(self):
         # log folder
-        self.log = r"C:\Users\const\PycharmProjects\OCR-transformer\log"
+        self.log = r"/content/drive/MyDrive/log"
 
         # checkpoint for training
         self.chk = None
 
-        self.train_labels_dir = r"C:\projects\annotation.csv"
-        self.train_image_dir = r"C:\projects\data"
+        self.train_labels_dir = r"/content/real_dataset/annotation.csv"
+        self.train_image_dir = r"/content/real_dataset/data/"
 
         self.test_labels_dir = r'/content/OCR_DATASET_146k/OCR_DATASET_SYNTH_146k.txt'
         self.test_image_dir = r'/content/OCR_DATASET_146k/OCR_DATASET_SYNTH_146k/'
@@ -43,9 +43,8 @@ class Paths():
 
 random.seed(1488)
 torch.manual_seed(1488)
-#torch.cuda.manual_seed(1488)
-#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-device = torch.device('cpu')
+torch.cuda.manual_seed(1488)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 hp = Hparams()
 path = Paths()
