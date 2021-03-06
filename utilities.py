@@ -6,6 +6,7 @@ from tqdm import tqdm
 from config import *
 import torch
 import matplotlib.pyplot as plt
+import wandb
 
 def process_data(image_dir, labels_dir):
     '''
