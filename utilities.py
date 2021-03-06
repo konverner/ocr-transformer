@@ -123,7 +123,6 @@ def char_error_rate(p_seq1, p_seq2):
 
 # подгружает изображения, меняет их до необходимого размера и нормирует."""
 def process_image(img):
-    #plt.imshow(img)
     # img  = np.stack([img, img, img], axis=-1)
     w, h, _ = img.shape
 
@@ -141,6 +140,7 @@ def process_image(img):
 
     if h > new_h:
         img = cv2.resize(img, (new_h, new_w))
+
     return img
 
 
