@@ -1,154 +1,63 @@
-import time
-from dataset import *
-from utilities import *
-from train import *
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2, os, argparse, time, random, math
+from torchvision import transforms, models
+import torch
 from config import *
-from model import *
-import wandb
 
-def train(model, optimizer, criterion, iterator,logging=True):
-    model.train()
-    epoch_loss = 0
-    counter = 0
-    for src, trg in iterator:
-        counter += 1
-        if counter % 500 == 0:
-            print('[', counter, '/', len(iterator), ']')
-        src, trg = src.cuda(), trg.cuda()
+# Перевести текст в массив индексов
+def text_to_labels(s, char2idx):
+    return [char2idx['SOS']] + [char2idx[i] for i in s if i in char2idx.keys()] + [char2idx['EOS']]
 
-        optimizer.zero_grad()
-        output = model(src, trg[:-1, :])
+# Датасет загрузки изображений и тексты
+class TextLoader(torch.utils.data.Dataset):
+    def __init__(self ,name_image ,label, char2idx,idx2char,eval=False):
+        print('text loader:', len(name_image), len(label))
+        self.name_image = name_image
+        self.label = label
+        self.char2idx = char2idx
+        self.idx2char = idx2char
+        self.eval = eval
+        self.transform = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
+            transforms.RandomCrop((hp.height, hp.width)),
+            transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
+            transforms.RandomRotation(degrees=(-2, 2)),
+            #transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
+            #transforms.transforms.GaussianBlur(3, sigma=(0.1, 0.5)),
+            transforms.ToTensor()
+        ])
+    
+    def random_exp(self,n=1,train=True,show=False):
+        examples = []
+        for k in range(n):
+          i = random.randint(0,len(self.name_image))
+          img = self.transform(self.name_image[i])
+          img = img/img.max()
+          img = img**(random.random( ) *0.7 + 0.6)
+          examples.append(img)
+        if show == True:
+          fig=plt.figure(figsize=(8, 8))
+          rows = int(n/4) + 2
+          columns = int(n/8) + 2
+          for j,exp in enumerate(examples):
+            fig.add_subplot(rows, columns, j+1)
+            plt.imshow(exp.permute(1, 2, 0))
+        return examples
 
-        loss = criterion(output.view(-1, output.shape[-1]), torch.reshape(trg[1:, :], (-1,)))
-        loss.backward()
-        optimizer.step()
-        epoch_loss += loss.item()
-
-    return epoch_loss / len(iterator)
-
-# Общая функция обучения и валидации
-def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, train_loader, val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,eval_accuracy_all,logging=True):
-    train_loss = 0
-    count_bad = 0
-    for epoch in range(epochs, 1000):
-        print(f'Epoch: {epoch + 1:02}')
-        start_time = time.time()
-        print("-----------train------------")
-        train_loss = train(model, optimizer, criterion, train_loader,logging=logging)
-        print("\n-----------valid------------")
-        valid_loss = evaluate(model, criterion, val_loader,logging=logging)
-        print("-----------eval------------")
-        eval_loss_cer, eval_accuracy = validate(model, val_loader, show=20,logging=logging)
-        scheduler.step(eval_loss_cer)
-        valid_loss_all.append(valid_loss)
-        train_loss_all.append(train_loss)
-        eval_loss_cer_all.append(eval_loss_cer)
-        eval_accuracy_all.append(eval_accuracy)
-        if eval_loss_cer < best_eval_loss_cer:
-            count_bad = 0
-            best_eval_loss_cer = eval_loss_cer
-            torch.save({
-                'model': model.state_dict(),
-                'epoch': epoch,
-                'best_eval_loss_cer': best_eval_loss_cer,
-                'valid_loss_all': valid_loss_all,
-                'train_loss_all': train_loss_all,
-                'eval_loss_cer_all': eval_loss_cer_all,
-                'eval_accuracy_all': eval_accuracy_all,
-            }, '/content/gdrive/MyDrive/log/resnet50_trans_%.3f.pt' % (best_eval_loss_cer))
-            print('Save best model')
+    def __getitem__(self, index):
+        img = self.name_image[index]
+        if not self.eval:
+            img = self.transform(img)
+            img = img / img.max()
+            img = img**(random.random( ) *0.7 + 0.6)
         else:
-            count_bad += 1
-            torch.save({
-                'model': model.state_dict(),
-                'epoch': epoch,
-                'best_eval_loss_cer': best_eval_loss_cer,
-                'valid_loss_all': valid_loss_all,
-                'train_loss_all': train_loss_all,
-                'eval_loss_cer_all': eval_loss_cer_all,
-                'eval_accuracy_all': eval_accuracy_all,
-            }, '/content/gdrive/MyDrive/log/resnet50_trans_last.pt')
-            print('Save model')
+            img = np.transpose(img ,(2 ,0 ,1))
+            img = img / img.max()
 
-        if logging:
-            wandb.log({'train_loss_wer': train_loss, "valid_loss_wer": valid_loss, 'eval_accuracy_wer': 100 - eval_accuracy,
-                   'eval_loss_cer': eval_loss_cer})
+        label = text_to_labels(self.label[index], self.char2idx)
+        return (torch.FloatTensor(img), torch.LongTensor(label))
 
-        print(f'Time: {time.time() - start_time}s')
-        print(f'Train Loss: {train_loss:.4f}')
-        print(f'Val   Loss: {valid_loss:.4f}')
-        print(f'Eval  CER: {eval_loss_cer:.4f}')
-        print(f'Eval accuracy: {eval_accuracy:.4f}')
-        plt.clf()
-        plt.plot(valid_loss_all[-20:])
-        plt.plot(train_loss_all[-20:])
-        plt.savefig('/content/gdrive/MyDrive/log/all_loss.png')
-        plt.clf()
-        plt.plot(eval_loss_cer_all[-20:])
-        plt.savefig('/content/gdrive/MyDrive/log/loss_cer.png')
-        plt.clf()
-        plt.plot(eval_accuracy_all[-20:])
-        plt.savefig('/content/gdrive/MyDrive/log/eval_accuracy.png')
-        if count_bad > 19:
-            break
-
-
-
-def validate(model, dataloader,show=70,logging=True):
-    idx2char = dataloader.dataset.idx2char
-    char2idx = dataloader.dataset.char2idx
-    model.eval()
-    show_count = 0
-    error_w = 0
-    error_p = 0
-    with torch.no_grad():
-        for (src, trg) in dataloader:
-            img = np.moveaxis(src[0].numpy(), 0, 2)
-            src = src.cuda()
-            x = model.backbone.conv1(src)
-            x = model.backbone.bn1(x)
-            x = model.backbone.relu(x)
-            x = model.backbone.maxpool(x)
-            x = model.backbone.layer1(x)
-            x = model.backbone.layer2(x)
-            x = model.backbone.layer3(x)
-            x = model.backbone.layer4(x)
-            # x = model.backbone.avgpool(x)
-
-            x = model.backbone.fc(x)
-
-            x = x.permute(0, 3, 1, 2).flatten(2).permute(1, 0, 2)
-
-            memory = model.transformer.encoder(model.pos_encoder(x))
-
-            out_indexes = [char2idx['SOS'], ]
-
-            for i in range(100):
-                trg_tensor = torch.LongTensor(out_indexes).unsqueeze(1).to(device)
-
-                output = model.fc_out(model.transformer.decoder(model.pos_decoder(model.decoder(trg_tensor)), memory))
-                out_token = output.argmax(2)[-1].item()
-                out_indexes.append(out_token)
-                if out_token == char2idx['EOS']:
-                    break
-
-            out_char = labels_to_text(out_indexes[1:], idx2char)
-            real_char = labels_to_text(trg[1:, 0].numpy(), idx2char)
-            error_w += int(real_char != out_char)
-            if out_char:
-                cer = char_error_rate(real_char, out_char)
-            else:
-                cer = 1
-
-            error_p += cer
-            if show > show_count:
-                # plt.imshow(img)
-                # plt.show()
-                if logging:
-                    wandb.log({"Validation Examples": wandb.Image(img, caption="Pred: {} Truth: {}".format(out_char, real_char))})
-                show_count += 1
-                print('Real:', real_char)
-                print('Pred:', out_char)
-                print(cer)
-
-    return error_p / len(dataloader) * 100, error_w / len(dataloader) * 100
+    def __len__(self):
+        return len(self.label)
