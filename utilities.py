@@ -192,7 +192,7 @@ def evaluate(model, criterion, iterator):
     epoch_loss = 0
     with torch.no_grad():
         for (src, trg) in tqdm(iterator):
-            #src, trg = src.cuda(), trg.cuda()
+            src, trg = src.cuda(), trg.cuda()
             output = model(src, trg[:-1, :])
             loss = criterion(output.view(-1, output.shape[-1]), torch.reshape(trg[1:, :], (-1,)))
             epoch_loss += loss.item()
