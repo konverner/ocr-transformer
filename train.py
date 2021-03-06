@@ -13,7 +13,7 @@ def train(model, optimizer, criterion, iterator,logging=True):
         counter += 1
         if counter % 500 == 0:
             print('[', counter, '/', len(iterator), ']')
-        #src, trg = src.cuda(), trg.cuda()
+        src, trg = src.cuda(), trg.cuda()
 
         optimizer.zero_grad()
         output = model(src, trg[:-1, :])
