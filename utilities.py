@@ -5,7 +5,7 @@ from collections import Counter
 from tqdm import tqdm
 from config import *
 import torch
-
+import matplotlib.pyplot as plt
 
 def process_data(image_dir, labels_dir):
     '''
@@ -37,7 +37,7 @@ def process_data(image_dir, labels_dir):
     for t in temp:
         try:
             x = t.split('g,')
-            img2label[image_dir + '\\' + x[0] + 'g'] = x[1].strip('"')
+            img2label[image_dir + x[0] + 'g'] = x[1].strip('"')
             for char in x[1]:
                 if char not in chars:
                     chars.append(char)
@@ -123,6 +123,7 @@ def char_error_rate(p_seq1, p_seq2):
 
 # подгружает изображения, меняет их до необходимого размера и нормирует."""
 def process_image(img):
+    #plt.imshow(img)
     # img  = np.stack([img, img, img], axis=-1)
     w, h, _ = img.shape
 
@@ -140,7 +141,6 @@ def process_image(img):
 
     if h > new_h:
         img = cv2.resize(img, (new_h, new_w))
-
     return img
 
 
@@ -151,7 +151,7 @@ def generate_data(names, image_dir):
         if type(img) == type(None):
             print("ValueError:",name)
         else:
-            img = process_image(img)
+            img = process_image(img)            
             data_images.append(img.astype('uint8'))
     return data_images
 
