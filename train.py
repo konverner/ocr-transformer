@@ -5,7 +5,7 @@ from train import *
 from config import *
 from model import *
 
-def train(model, optimizer, criterion, iterator):
+def train(model, optimizer, criterion, iterator,logging=True):
     model.train()
     epoch_loss = 0
     counter = 0
