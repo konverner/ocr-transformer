@@ -4,12 +4,8 @@ import random
 class Hparams():
     def __init__(self):
 
-        # Символы, которые распознаются
-        self.chars = ['PAD','SOS',' ', '!', '"', '%', '(', ')', '+', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '?', 'C',
-                      'N', 'P', 'S', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П',
-                      'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ы', 'Ь', 'Э', 'Ю', 'Я', 'а', 'б', 'в', 'г',
-                      'д', 'е', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц',
-                      'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', 'ё', '—', '№','EOS']
+        # SETS OF CHARACTERS
+        self.cyrillic =['PAD','SOS','!','"','(',')',',','-','.',':',';','?',']','«','»',' ','А','Б','В','Г','Д','Е','Ж','З','И','К','Л','М','Н','О','П','Р','С','Т','У','Ф','Х','Ч','Ш','Э','Ю','Я','а','б','в','г','д','е','ж','з','и','й','к','л','м','н','о','п','р','с','т','у','ф','х','ц','ч','ш','щ','ъ','ы','ь','э','ю','я','ё','—','“','„','EOS'] 
 
         # Символы, которые надо удалить
         self.del_sym = []
@@ -34,8 +30,8 @@ class Paths():
         # checkpoint for training
         self.chk = None
 
-        self.train_labels_dir = r"/content/real_dataset/annotation.csv"
-        self.train_image_dir = r"/content/real_dataset/data/"
+        self.train_labels_dir = r"/content/LABELED_without_punct.tsv"
+        self.train_image_dir = r"/content/without_punct/"
 
         self.test_labels_dir = r'/content/OCR_DATASET_146k/OCR_DATASET_SYNTH_146k.txt'
         self.test_image_dir = r'/content/OCR_DATASET_146k/OCR_DATASET_SYNTH_146k/'
