@@ -37,8 +37,8 @@ def process_data(image_dir, labels_dir):
     temp = raw.split('\n')
     for t in temp:
         try:
-            x = t.split('g,')
-            img2label[image_dir + x[0] + 'g'] = x[1].strip('"')
+            x = t.split('\t')
+            img2label[image_dir + x[0]] = x[1]
             for char in x[1]:
                 if char not in chars:
                     chars.append(char)
