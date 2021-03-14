@@ -12,7 +12,6 @@ def text_to_labels(s, char2idx):
 # Датасет загрузки изображений и тексты
 class TextLoader(torch.utils.data.Dataset):
     def __init__(self ,name_image ,label, char2idx,idx2char,eval=False):
-        print('text loader:', len(name_image), len(label))
         self.name_image = name_image
         self.label = label
         self.char2idx = char2idx
@@ -20,22 +19,25 @@ class TextLoader(torch.utils.data.Dataset):
         self.eval = eval
         self.transform = transforms.Compose([
             transforms.ToPILImage(),
-            transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
-            transforms.RandomCrop((hp.height, hp.width)),
-            transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
-            transforms.RandomRotation(degrees=(-2, 2)),
+            #transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
+            #transforms.RandomCrop((hp.height, hp.width)),
+            #transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
+            #transforms.RandomRotation(degrees=(-2, 2)),
             #transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
             #transforms.transforms.GaussianBlur(3, sigma=(0.1, 0.5)),
             transforms.ToTensor()
         ])
     
     def random_exp(self,n=1,train=True,show=False):
+        print('blah')
         examples = []
         for k in range(n):
+
           i = random.randint(0,len(self.name_image))
+          print(self.label[i])
           img = self.transform(self.name_image[i])
           img = img/img.max()
-          img = img**(random.random( ) *0.7 + 0.6)
+          #img = img**(random.random( ) *0.7 + 0.6)
           examples.append(img)
         if show == True:
           fig=plt.figure(figsize=(8, 8))
@@ -51,7 +53,7 @@ class TextLoader(torch.utils.data.Dataset):
         if not self.eval:
             img = self.transform(img)
             img = img / img.max()
-            img = img**(random.random( ) *0.7 + 0.6)
+            #img = img**(random.random( ) *0.7 + 0.6)
         else:
             img = np.transpose(img ,(2 ,0 ,1))
             img = img / img.max()
