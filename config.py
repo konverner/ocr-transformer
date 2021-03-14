@@ -29,8 +29,11 @@ class Paths():
         # checkpoint for training
         self.chk = None
 
-        self.train_labels_dir = r"/content/kovshov_unique_0.tsv"
-        self.train_image_dir = r"/content/synth_dataset/kovshov_unique_0/"
+        self.pretrain_labels_dir = r"/content/pretrain/labels.tsv"
+        self.pretrain_image_dir = r"/content/pretrain/"
+
+        self.train_labels_dir = r"/content/train/labels.tsv"
+        self.train_image_dir = r"/content/train/"
 
         self.test_labels_dir = r'/content/OCR_DATASET_146k/OCR_DATASET_SYNTH_146k.txt'
         self.test_image_dir = r'/content/OCR_DATASET_146k/OCR_DATASET_SYNTH_146k/'
