@@ -20,10 +20,10 @@ class TextLoader(torch.utils.data.Dataset):
         self.eval = eval
         self.transform = transforms.Compose([
             transforms.ToPILImage(),
-            #transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
+            transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
             #transforms.RandomCrop((hp.height, hp.width)),
             #transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
-            #transforms.RandomRotation(degrees=(-2, 2)),
+            transforms.RandomRotation(degrees=(-6,6),fill=255),
             #transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
             #transforms.transforms.GaussianBlur(3, sigma=(0.1, 0.5)),
             transforms.ToTensor()
