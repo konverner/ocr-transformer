@@ -10,7 +10,7 @@ class Hparams():
         self.del_sym = []
 
         self.lr = 1e-4
-        self.batch_size = 32
+        self.batch_size = 8
         self.hidden = 512
         self.enc_layers = 1
         self.dec_layers = 1
@@ -30,7 +30,7 @@ class Paths():
         self.chk = None
 
         self.pretrain_labels_dir = r"/content/pretrain/labels.tsv"
-        self.pretrain_image_dir = r"/content/pretrain/"
+        self.pretrain_image_dir = r"/content/pretrain/pretrain/"
 
         self.train_labels_dir = r"/content/train/labels.tsv"
         self.train_image_dir = r"/content/train/"
