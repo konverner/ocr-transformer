@@ -8,7 +8,7 @@ import torch
 import matplotlib.pyplot as plt
 import wandb
 
-def process_data(image_dir, labels_dir):
+def process_data(image_dir, labels_dir,ignore=[]):
     '''
     params
     ---
@@ -38,10 +38,15 @@ def process_data(image_dir, labels_dir):
     for t in temp:
         try:
             x = t.split('\t')
-            img2label[image_dir + x[0]] = x[1]
-            for char in x[1]:
-                if char not in chars:
-                    chars.append(char)
+            flag = False
+            for item in ignore:
+              if item in x[1]:
+                flag = True
+            if flag == False:
+              img2label[image_dir + x[0]] = x[1]
+              for char in x[1]:
+                  if char not in chars:
+                      chars.append(char)
         except:
             print('ValueError:', x)
             pass
