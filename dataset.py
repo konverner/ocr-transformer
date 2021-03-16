@@ -5,7 +5,10 @@ from torchvision import transforms, models
 from collections import Counter
 import torch
 from config import *
-
+import Augmentor
+p = Augmentor.Pipeline()
+p.shear(max_shear_left=5,max_shear_right=5,probability=0.7)
+p.random_distortion(probability=0.7, grid_width=3, grid_height=3, magnitude=6)
 # Перевести текст в массив индексов
 def text_to_labels(s, char2idx):
     return [char2idx['SOS']] + [char2idx[i] for i in s if i in char2idx.keys()] + [char2idx['EOS']]
@@ -20,12 +23,13 @@ class TextLoader(torch.utils.data.Dataset):
         self.eval = eval
         self.transform = transforms.Compose([
             transforms.ToPILImage(),
-            transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
+            p.torch_transform(), # random distortion and shear
+            #transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
             #transforms.RandomCrop((hp.height, hp.width)),
             #transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
             transforms.RandomRotation(degrees=(-6,6),fill=255),
             #transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
-            #transforms.transforms.GaussianBlur(3, sigma=(0.1, 0.5)),
+            transforms.transforms.GaussianBlur(3, sigma=(0.1, 0.5)),
             transforms.ToTensor()
         ])
     
