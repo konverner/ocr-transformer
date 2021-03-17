@@ -33,15 +33,23 @@ class TextLoader(torch.utils.data.Dataset):
             transforms.ToTensor()
         ])
     
-    def random_exp(self,n=1,train=True,show=False):
+    def random_exp(self,n=1,train=True,show=False,fix=False):
         examples = []
-        for k in range(n):
-          i = random.randint(0,len(self.name_image))
-          img = self.transform(self.name_image[i])
-          print(self.label[i])
-          img = img/img.max()
-          #img = img**(random.random( ) *0.7 + 0.6)
-          examples.append(img)
+        if fix == True:
+          for i in range(n):
+            img = self.transform(self.name_image[i])
+            print(self.label[i])
+            img = img/img.max()
+            img = img**(random.random( ) *0.7 + 0.6)
+            examples.append(img)
+        else:
+          for k in range(n):
+            i = random.randint(0,len(self.name_image))
+            img = self.transform(self.name_image[i])
+            print(self.label[i])
+            img = img/img.max()
+            img = img**(random.random( ) *0.7 + 0.6)
+            examples.append(img)
         if show == True:
           fig=plt.figure(figsize=(8, 8))
           rows = int(n/4) + 2
@@ -67,7 +75,7 @@ class TextLoader(torch.utils.data.Dataset):
         if not self.eval:
             img = self.transform(img)
             img = img / img.max()
-            #img = img**(random.random( ) *0.7 + 0.6)
+            img = img**(random.random( ) *0.7 + 0.6)
         else:
             img = np.transpose(img ,(2 ,0 ,1))
             img = img / img.max()
