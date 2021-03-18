@@ -29,8 +29,8 @@ class Paths():
         # checkpoint for training
         self.chk = None
 
-        self.pretrain_labels_dir = r"/content/pretrain/labels.tsv"
-        self.pretrain_image_dir = r"/content/pretrain/pretrain/"
+        self.pretrain_labels_dir = r"/content/pretrain_werner/labels.tsv"
+        self.pretrain_image_dir = r"/content/pretrain_werner/pretrain/"
 
         self.train_labels_dir = r"/content/train/labels.tsv"
         self.train_image_dir = r"/content/train/"
