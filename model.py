@@ -6,7 +6,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 class TransformerModel(nn.Module):
-    def __init__(self, name, outtoken, hidden=128, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=False):
+    def __init__(self, name, outtoken, hidden=256, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=False):
         # здесь загружаем сверточную модель, например, resnet50
         super(TransformerModel, self).__init__()
         self.backbone = models.__getattribute__(name)(pretrained=pretrained)
