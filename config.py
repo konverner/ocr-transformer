@@ -18,8 +18,8 @@ class Hparams():
         self.dropout = 0.1
         
         # IMAGE SIZE
-        self.width = 128
-        self.height = 32
+        self.width = 256
+        self.height = 64
 
 class Paths():
     def __init__(self):
