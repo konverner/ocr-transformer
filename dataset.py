@@ -5,8 +5,11 @@ from torchvision import transforms, models
 from collections import Counter
 import torch
 from config import *
+from utilities import *
 import augmentations
 import Augmentor
+v=augmentations.Vignetting()
+tt = ToTensor()
 p = Augmentor.Pipeline()
 p.shear(max_shear_left=2,max_shear_right=2,probability=0.5)
 p.random_distortion(probability=0.5, grid_width=3, grid_height=3, magnitude=6)
@@ -23,6 +26,7 @@ class TextLoader(torch.utils.data.Dataset):
         self.idx2char = idx2char
         self.eval = eval
         self.transform = transforms.Compose([
+            #augmentations.Vignetting(),
             transforms.ToPILImage(),
             p.torch_transform(), # random distortion and shear
             #transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
@@ -31,15 +35,23 @@ class TextLoader(torch.utils.data.Dataset):
             #transforms.RandomRotation(degrees=(-6,6),fill=255),
             #transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
             transforms.transforms.GaussianBlur(3, sigma=(0.1, 1.3)),
-            transforms.ToTensor(),
-            augmentations.Vignetting()
+            transforms.ToTensor()
         ])
     
+    def _transform(self,X):
+      j = np.random.randint(0,2,1)
+      print('_tr:',j)
+      if j == 0:
+        return self.transform(X)
+      else:
+        return tt(v(X))
+
+
     def random_exp(self,n=1,train=True,show=False,fix=False):
         examples = []
         if fix == True:
           for i in range(n):
-            img = self.transform(self.name_image[i])
+            img = self._transform(self.name_image[i])
             print(self.label[i])
             img = img/img.max()
             img = img**(random.random( ) *0.7 + 0.6)
@@ -47,7 +59,7 @@ class TextLoader(torch.utils.data.Dataset):
         else:
           for k in range(n):
             i = random.randint(0,len(self.name_image))
-            img = self.transform(self.name_image[i])
+            img = self._transform(self.name_image[i])
             print(self.label[i])
             img = img/img.max()
             img = img**(random.random( ) *0.7 + 0.6)
@@ -75,7 +87,7 @@ class TextLoader(torch.utils.data.Dataset):
     def __getitem__(self, index):
         img = self.name_image[index]
         if not self.eval:
-            img = self.transform(img)
+            img = self._transform(img)
             img = img / img.max()
             img = img**(random.random( ) *0.7 + 0.6)
         else:
