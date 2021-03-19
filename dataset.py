@@ -34,9 +34,9 @@ class TextLoader(torch.utils.data.Dataset):
             #transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
             #transforms.RandomCrop((hp.height, hp.width)),
             #transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
-            #transforms.RandomRotation(degrees=(-6,6),fill=255),
+            transforms.RandomRotation(degrees=(-6,6),fill=255),
             #transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
-            transforms.transforms.GaussianBlur(3, sigma=(0.1, 1.9)),
+            #transforms.transforms.GaussianBlur(3, sigma=(0.1, 1.9)),
             transforms.ToTensor()
         ])
     
@@ -98,7 +98,7 @@ class TextLoader(torch.utils.data.Dataset):
             img = img / img.max()
 
         label = text_to_labels(self.label[index], self.char2idx)
-        return (torch.FloatTensor(img.float()), torch.LongTensor(label))
+        return (torch.FloatTensor(img.astype(np.float()), torch.LongTensor(label))
 
     def __len__(self):
         return len(self.label)
