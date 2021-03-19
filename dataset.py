@@ -8,11 +8,14 @@ from config import *
 from utilities import *
 import augmentations
 import Augmentor
-v=augmentations.Vignetting()
+vignet=augmentations.Vignetting()
+cutout = augmentations.Cutout(min_size_ratio=[1,4],max_size_ratio=[2,5])
+un = augmentations.UniformNoise()
 tt = ToTensor()
 p = Augmentor.Pipeline()
-p.shear(max_shear_left=2,max_shear_right=2,probability=0.5)
-p.random_distortion(probability=0.5, grid_width=3, grid_height=3, magnitude=6)
+ld = augmentations.LensDistortion()
+p.shear(max_shear_left=2,max_shear_right=2,probability=0.7)
+p.random_distortion(probability=1.0, grid_width=6, grid_height=6, magnitude=8)
 # Перевести текст в массив индексов
 def text_to_labels(s, char2idx):
     return [char2idx['SOS']] + [char2idx[i] for i in s if i in char2idx.keys()] + [char2idx['EOS']]
@@ -26,25 +29,25 @@ class TextLoader(torch.utils.data.Dataset):
         self.idx2char = idx2char
         self.eval = eval
         self.transform = transforms.Compose([
-            #augmentations.Vignetting(),
             transforms.ToPILImage(),
             p.torch_transform(), # random distortion and shear
             #transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
             #transforms.RandomCrop((hp.height, hp.width)),
-            #transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
-            #transforms.RandomRotation(degrees=(-6,6),fill=255),
+            transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
+            transforms.RandomRotation(degrees=(-6,6),fill=255),
             #transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
-            transforms.transforms.GaussianBlur(3, sigma=(0.1, 1.3)),
+            transforms.transforms.GaussianBlur(3, sigma=(0.1, 1.9)),
             transforms.ToTensor()
         ])
     
     def _transform(self,X):
-      j = np.random.randint(0,2,1)
-      print('_tr:',j)
+      j = np.random.randint(0,3,1)[0]
       if j == 0:
         return self.transform(X)
-      else:
-        return tt(v(X))
+      if j == 1:
+        return tt(ld(vignet(X)))
+      if j == 2:
+        return tt(ld(un(X)))
 
 
     def random_exp(self,n=1,train=True,show=False,fix=False):
