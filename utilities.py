@@ -281,3 +281,15 @@ def prediction(model, test_dir):
             preds[filename] = pred
 
     return preds
+
+
+class ToTensor(object):
+    def __init__(self, X_type=None, Y_type=None):
+        self.X_type = X_type
+
+    def __call__(self, X):
+        X = X.transpose((2, 0, 1))
+        X = torch.from_numpy(X)
+        if self.X_type is not None:
+            X = X.type(self.X_type)
+        return X
