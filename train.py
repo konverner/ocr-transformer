@@ -14,7 +14,7 @@ def train(model, optimizer, criterion, iterator,logging=True):
         counter += 1
         if counter % 500 == 0:
             print('[', counter, '/', len(iterator), ']')
-        src, trg = src.cuda(), trg.cuda()
+        #src, trg = src.cuda(), trg.cuda()
 
         optimizer.zero_grad()
         output = model(src, trg[:-1, :])
@@ -71,13 +71,13 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
             print('Save model')
 
         if logging:
-            wandb.log({'train_loss_wer': train_loss, "valid_loss_wer": valid_loss, 'eval_accuracy_wer': 100 - eval_accuracy,
-                   'eval_loss_cer': eval_loss_cer})
+            wandb.log({'Train loss WER': train_loss, "Valid loss WER": valid_loss, 'Valid WER': 100 - eval_accuracy,
+                   'Valid_loss CER': eval_loss_cer})
 
         print(f'Time: {time.time() - start_time}s')
         print(f'Train Loss: {train_loss:.4f}')
         print(f'Val   Loss: {valid_loss:.4f}')
-        print(f'Eval  CER: {eval_loss_cer:.4f}')
+        print(f'Eval loss CER: {eval_loss_cer:.4f}')
         print(f'Eval accuracy: {100 - eval_accuracy:.4f}')
         if count_bad > 19:
             break
@@ -87,6 +87,7 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
 def validate(model, dataloader,show=70,logging=True):
     idx2char = dataloader.dataset.idx2char
     char2idx = dataloader.dataset.char2idx
+    confuse_dict = dict()
     model.eval()
     show_count = 0
     error_w = 0
@@ -94,7 +95,7 @@ def validate(model, dataloader,show=70,logging=True):
     with torch.no_grad():
         for (src, trg) in dataloader:
             img = np.moveaxis(src[0].numpy(), 0, 2)
-            src = src.cuda()
+            #src = src.cuda()
             x = model.backbone.conv1(src)
             x = model.backbone.bn1(x)
             x = model.backbone.relu(x)
@@ -129,16 +130,25 @@ def validate(model, dataloader,show=70,logging=True):
                 cer = char_error_rate(real_char, out_char)
             else:
                 cer = 1
+            
+            if len(out_char) == len(real_char):
+              confuse_dict = confused_chars(real_char,out_char,confuse_dict)
 
             error_p += cer
             if show > show_count:
                 # plt.imshow(img)
                 # plt.show()
                 if logging:
-                    wandb.log({"Validation Examples": wandb.Image(img, caption="Pred: {} Truth: {}".format(out_char, real_char))})
+                    if logging:
+                      wandb.log({'Valid CER': 1-cer})
+                      wandb.log({"Validation Examples": wandb.Image(img, caption="Pred: {} Truth: {}".format(out_char, real_char))})
                 show_count += 1
                 print('Real:', real_char)
                 print('Pred:', out_char)
                 print(cer)
-
+    
+    for key in confuse_dict.keys():
+      print('{} is confused with'.format(key))
+      print(confuse_dict[key])
+      
     return error_p / len(dataloader) * 100, error_w / len(dataloader) * 100
