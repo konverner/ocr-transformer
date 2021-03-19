@@ -10,6 +10,7 @@ class Vignetting(object):
         self.random_sign = random_sign
 
     def __call__(self, X, Y=None):
+        print(X.shape)
         h, w = X.shape[:2]
         min_dist = np.array([h, w]) / 2 * np.random.random() * self.ratio_min_dist
 
@@ -29,5 +30,5 @@ class Vignetting(object):
 
         sign = 2 * (np.random.random() < 0.5) * (self.random_sign) - 1
         X = X * (1 + sign * vignette)
-
+        print(X.shape)
         return X
