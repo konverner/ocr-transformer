@@ -6,12 +6,12 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 class TransformerModel(nn.Module):
-    def __init__(self, name, outtoken, hidden=256, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=False):
+    def __init__(self, name, outtoken, hidden, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=False):
         # здесь загружаем сверточную модель, например, resnet50
         super(TransformerModel, self).__init__()
         self.backbone = models.__getattribute__(name)(pretrained=pretrained)
         # self.backbone.avgpool = nn.MaxPool2d((4, 1))
-        self.backbone.fc = nn.Conv2d(2048, hidden, 1)
+        self.backbone.fc = nn.Conv2d(2048, int(hidden/2), 1)
 
         self.pos_encoder = PositionalEncoding(hidden, dropout)
         self.decoder = nn.Embedding(outtoken, hidden)
@@ -48,11 +48,9 @@ class TransformerModel(nn.Module):
         # x = self.backbone.avgpool(x)
 
         x = self.backbone.fc(x)
-
         x = x.permute(0, 3, 1, 2).flatten(2).permute(1, 0, 2)
         src_pad_mask = self.make_len_mask(x[:, :, 0])
         src = self.pos_encoder(x)
-
         trg_pad_mask = self.make_len_mask(trg)
         trg = self.decoder(trg)
         trg = self.pos_decoder(trg)
