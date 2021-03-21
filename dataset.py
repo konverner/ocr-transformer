@@ -15,7 +15,7 @@ tt = ToTensor()
 p = Augmentor.Pipeline()
 ld = augmentations.LensDistortion()
 p.shear(max_shear_left=2,max_shear_right=2,probability=0.7)
-p.random_distortion(probability=1.0, grid_width=6, grid_height=6, magnitude=8)
+p.random_distortion(probability=1.0, grid_width=3, grid_height=3, magnitude=11)
 # Перевести текст в массив индексов
 def text_to_labels(s, char2idx):
     return [char2idx['SOS']] + [char2idx[i] for i in s if i in char2idx.keys()] + [char2idx['EOS']]
@@ -34,9 +34,9 @@ class TextLoader(torch.utils.data.Dataset):
             #transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
             #transforms.RandomCrop((hp.height, hp.width)),
             #transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
-            transforms.RandomRotation(degrees=(-6,6),fill=255),
+            transforms.RandomRotation(degrees=(-9,9),fill=255),
             #transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
-            #transforms.transforms.GaussianBlur(3, sigma=(0.1, 1.9)),
+            transforms.transforms.GaussianBlur(3, sigma=(0.1, 1.9)),
             transforms.ToTensor()
         ])
     
@@ -98,7 +98,7 @@ class TextLoader(torch.utils.data.Dataset):
             img = img / img.max()
 
         label = text_to_labels(self.label[index], self.char2idx)
-        return (torch.FloatTensor(img.astype(np.float()), torch.LongTensor(label)))
+        return (torch.FloatTensor(img), torch.LongTensor(label))
 
     def __len__(self):
         return len(self.label)
