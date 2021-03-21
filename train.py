@@ -5,7 +5,7 @@ from train import *
 from config import *
 from model import *
 import wandb
-
+import pickle
 def train(model, optimizer, criterion, iterator,logging=True):
     model.train()
     epoch_loss = 0
@@ -30,6 +30,7 @@ def train(model, optimizer, criterion, iterator,logging=True):
 def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, train_loader, val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,eval_accuracy_all,logging=True):
     train_loss = 0
     count_bad = 0
+    confuse_dict = dict()
     for epoch in range(epochs, 1000):
         print(f'Epoch: {epoch + 1:02}')
         start_time = time.time()
@@ -38,12 +39,13 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
         print("\n-----------valid------------")
         valid_loss = evaluate(model, criterion, val_loader,logging=logging)
         print("-----------eval------------")
-        eval_loss_cer, eval_accuracy = validate(model, val_loader, show=20,logging=logging)
+        eval_loss_cer, eval_accuracy, confuse_dict = validate(model, val_loader, show=20,logging=logging,confuse_dict=confuse_dict,epoch=epoch)
         scheduler.step(eval_loss_cer)
         valid_loss_all.append(valid_loss)
         train_loss_all.append(train_loss)
         eval_loss_cer_all.append(eval_loss_cer)
         eval_accuracy_all.append(eval_accuracy)
+        pickle.dump(confuse_dict, open(path.log+'confuse_dict.pickle',mode='wb'))
         if eval_loss_cer < best_eval_loss_cer:
             count_bad = 0
             best_eval_loss_cer = eval_loss_cer
@@ -71,8 +73,8 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
             print('Save model')
 
         if logging:
-            wandb.log({'Train loss WER': train_loss, "Valid loss WER": valid_loss, 'Valid WER': 100 - eval_accuracy,
-                   'Valid_loss CER': eval_loss_cer})
+            wandb.log({'Train loss WER': train_loss, "Validation loss WER": valid_loss, 'Validation Word Accuracy': 100 - eval_accuracy,
+                   'Validation loss CER': eval_loss_cer})
 
         print(f'Time: {time.time() - start_time}s')
         print(f'Train Loss: {train_loss:.4f}')
@@ -84,10 +86,9 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
 
 
 
-def validate(model, dataloader,show=70,logging=True):
+def validate(model, dataloader,show,logging,confuse_dict,epoch):
     idx2char = dataloader.dataset.idx2char
     char2idx = dataloader.dataset.char2idx
-    confuse_dict = dict()
     model.eval()
     show_count = 0
     error_w = 0
@@ -140,15 +141,16 @@ def validate(model, dataloader,show=70,logging=True):
                 # plt.show()
                 if logging:
                     if logging:
-                      wandb.log({'Valid CER': 1-cer})
+                      wandb.log({'Validation Character Accuracy': (1-cer)*100})
                       wandb.log({"Validation Examples": wandb.Image(img, caption="Pred: {} Truth: {}".format(out_char, real_char))})
                 show_count += 1
                 print('Real:', real_char)
                 print('Pred:', out_char)
                 print(cer)
     
-    for key in confuse_dict.keys():
-      print('{} is confused with'.format(key))
-      print(confuse_dict[key])
+    if epoch%5 == 0:
+      for key in confuse_dict.keys():
+        print('{} is confused with'.format(key))
+        print(confuse_dict[key])
       
-    return error_p / len(dataloader) * 100, error_w / len(dataloader) * 100
+    return error_p / len(dataloader) * 100, error_w / len(dataloader) * 100, confuse_dict
