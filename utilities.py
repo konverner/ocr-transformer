@@ -293,3 +293,22 @@ class ToTensor(object):
         if self.X_type is not None:
             X = X.type(self.X_type)
         return X
+
+
+def confused_chars(string_true,string_predict,conf_dict):
+  for i in range(len(string_true)):
+    if string_true[i] != string_predict[i]:
+      if string_true[i] not in conf_dict.keys():
+        conf_dict[string_true[i]] = [[string_predict[i],1]]
+      else:
+        flag = False
+        for j in range(len(conf_dict[string_true[i]])):
+          if conf_dict[string_true[i]][j][0] == string_predict[i]:
+            conf_dict[string_true[i]][j][1] += 1
+            flag=True
+            break
+        if flag == False:
+            conf_dict[string_true[i]].append([string_predict[i],1])
+
+  return conf_dict
+
