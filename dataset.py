@@ -98,7 +98,7 @@ class TextLoader(torch.utils.data.Dataset):
             img = img / img.max()
 
         label = text_to_labels(self.label[index], self.char2idx)
-        return (torch.FloatTensor(img.astype(np.float()), torch.LongTensor(label))
+        return (torch.FloatTensor(img.astype(np.float()), torch.LongTensor(label)))
 
     def __len__(self):
         return len(self.label)
