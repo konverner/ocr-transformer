@@ -14,7 +14,7 @@ def train(model, optimizer, criterion, iterator,logging=True):
         counter += 1
         if counter % 500 == 0:
             print('[', counter, '/', len(iterator), ']')
-        #src, trg = src.cuda(), trg.cuda()
+        src, trg = src.cuda(), trg.cuda()
 
         optimizer.zero_grad()
         output = model(src, trg[:-1, :])
@@ -95,7 +95,7 @@ def validate(model, dataloader,show=70,logging=True):
     with torch.no_grad():
         for (src, trg) in dataloader:
             img = np.moveaxis(src[0].numpy(), 0, 2)
-            #src = src.cuda()
+            src = src.cuda()
             x = model.backbone.conv1(src)
             x = model.backbone.bn1(x)
             x = model.backbone.relu(x)
