@@ -312,7 +312,7 @@ def confused_chars(string_true,string_predict,conf_dict):
 
   return conf_dict
 
-def get_mixed_data(pretrain_image_dir,pretrain_labels_dir,train_image_dir,train_image_dir,pretrain_part=0.3):
+def get_mixed_data(pretrain_image_dir,pretrain_labels_dir,train_image_dir,train_labels_dir,pretrain_part=0.3):
   img2label1, chars1, all_words1 = process_data(pretrain_image_dir,pretrain_labels_dir) # PRETRAIN PART
   img2label2, chars2, all_words2 = process_data(train_image_dir,train_image_dir) # TRAIN PART
   N = len(img2label1)*pretrain_part
