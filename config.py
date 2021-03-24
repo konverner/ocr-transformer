@@ -5,7 +5,7 @@ class Hparams():
     def __init__(self):
 
         # SETS OF CHARACTERS
-        self.cyrillic = ['PAD','SOS',' ','"','(',')',',','-','.','0','1','2','3','4','5','6','7','8','9',':',';','C','А','Б','В','Г','Д','Е','Ж','З','И','Й','К','Л','М','Н','О','П','Р','С','Т','У','Ф','Х','Ц','Ч','Ш','Щ','Ъ','Ы','Ь','Э','Ю','Я','а','б','в','г','д','е','ж','з','и','й','к','л','м','н','о','п','р','с','т','у','ф','х','ц','ч','ш','щ','ъ','ы','ь','э','ю','я','ё','EOS']
+        self.cyrillic = ['PAD', 'SOS', ' ', '!', '"', '%', '(', ')', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '?', '[', ']', '«', '»', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Э', 'Ю', 'Я', 'а', 'б', 'в', 'г', 'д', 'е', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', 'ё', 'EOS']
         # Символы, которые надо удалить
         self.del_sym = []
 
@@ -29,11 +29,11 @@ class Paths():
         # checkpoint for training
         self.chk = None
 
-        self.pretrain_labels_dir = r"/content/pretrain_werner/labels.tsv"
-        self.pretrain_image_dir = r"/content/pretrain_werner/pretrain/"
+        self.pretrain_labels_dir = r"/content/werner_pretrain/labels.tsv"
+        self.pretrain_image_dir = r"/content/werner_pretrain/pretrain/"
 
-        self.train_labels_dir = r"/content/train/labels.tsv"
-        self.train_image_dir = r"/content/train/"
+        self.train_labels_dir = r"/content/real_cyr_dataset/real_cyr_data.tsv"
+        self.train_image_dir = r"/content/real_cyr_dataset/real_cyr_data/"
 
         self.test_labels_dir = r'/content/OCR_DATASET_146k/OCR_DATASET_SYNTH_146k.txt'
         self.test_image_dir = r'/content/OCR_DATASET_146k/OCR_DATASET_SYNTH_146k/'
