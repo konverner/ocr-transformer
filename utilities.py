@@ -16,7 +16,7 @@ def process_data(image_dir, labels_dir,ignore=[]):
       path to directory with images
 
     labels_dir : str
-      path to csv file with labels
+      path to tsv file with labels
 
     returns
     ---
