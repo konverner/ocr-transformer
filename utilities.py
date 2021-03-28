@@ -205,14 +205,14 @@ def evaluate(model, criterion, iterator,logging=True):
     return epoch_loss / len(iterator)
 
 
-def test(model,image_dir,trans_dir,logging=True):
-    img2trans = dict()
+def test(model,image_dir,trans_dir,char2idx,idx2char,case=True):
+    img2label = dict()
     raw = open(trans_dir,'r',encoding='utf-8').read()
     temp = raw.split('\n')
     for t in temp:
-      x = t.split('g,')
-      img2trans[image_dir+x[0]+'g'] = x[1].strip('"')
-    preds = prediction(model,image_dir)
+      x = t.split('\t')
+      img2label[image_dir + x[0]] = x[1]
+    preds = prediction(model,image_dir,char2idx,idx2char)
     N = len(preds)
 
     wer = 0
@@ -221,13 +221,23 @@ def test(model,image_dir,trans_dir,logging=True):
     for item in preds.items():
       print(item)
       img_name = item[0]
-      true_trans = img2trans[image_dir+img_name]
+      true_trans = img2label[image_dir+img_name]
+
+      if 'ё' in true_trans:
+        true_trans = true_trans.replace('ё','е')
+      if 'ё' in predicted_trans:
+        predicted_trans = predicted_trans.replace('ё','е')
+
+      if not case:
+        true_trans=true_trans.lower()
+        predicted_trans=predicted_trans.lower()
+
       predicted_trans = item[1]
       if true_trans != predicted_trans:
-        print('---')
         print('true:', true_trans)
         print('predicted:', predicted_trans)
         print('cer:', 1 - char_error_rate(predicted_trans,true_trans))
+        print('---')
         wer += 1
         cer += 1 - char_error_rate(predicted_trans,true_trans)
 
@@ -235,7 +245,7 @@ def test(model,image_dir,trans_dir,logging=True):
 
 
 # Предсказания
-def prediction(model, test_dir):
+def prediction(model, test_dir,char2idx,idx2char):
     preds = {}
     os.makedirs('/output', exist_ok=True)
     model.eval()
@@ -265,7 +275,7 @@ def prediction(model, test_dir):
             memory = model.transformer.encoder(model.pos_encoder(x))
 
             p_values = 1
-            out_indexes = [p2idx['SOS'], ]
+            out_indexes = [char2idx['SOS'], ]
             for i in range(100):
                 trg_tensor = torch.LongTensor(out_indexes).unsqueeze(1).to(device)
                 output = model.fc_out(model.transformer.decoder(model.pos_decoder(model.decoder(trg_tensor)), memory))
@@ -273,10 +283,10 @@ def prediction(model, test_dir):
                 out_token = output.argmax(2)[-1].item()
                 p_values = p_values * torch.sigmoid(output[-1, 0, out_token]).item()
                 out_indexes.append(out_token)
-                if out_token == p2idx['EOS']:
+                if out_token == char2idx['EOS']:
                     break
 
-            pred = labels_to_text(out_indexes[1:], idx2p)
+            pred = labels_to_text(out_indexes[1:], idx2char)
             # print('pred:',p_values,pred)
             preds[filename] = pred
 
