@@ -222,6 +222,7 @@ def test(model,image_dir,trans_dir,char2idx,idx2char,case=True):
       print(item)
       img_name = item[0]
       true_trans = img2label[image_dir+img_name]
+      predicted_trans = item[1]
 
       if 'ё' in true_trans:
         true_trans = true_trans.replace('ё','е')
@@ -232,7 +233,6 @@ def test(model,image_dir,trans_dir,char2idx,idx2char,case=True):
         true_trans=true_trans.lower()
         predicted_trans=predicted_trans.lower()
 
-      predicted_trans = item[1]
       if true_trans != predicted_trans:
         print('true:', true_trans)
         print('predicted:', predicted_trans)
