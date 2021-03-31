@@ -9,7 +9,10 @@ from train import *
 import wandb
 import pickle
 
-def pretrain(model,chars,char2idx,idx2char,n_epochs,batch_size,PATH_TO_SOURCE,best_eval_loss_cer=0):
+def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,best_eval_loss_cer=0):
+  char2idx = {char: idx for idx, char in enumerate(chars)}
+  idx2char = {idx: char for idx, char in enumerate(chars)}
+
   g = handwritting_generator.Generator()
   g.upload_source(PATH_TO_SOURCE)
   trans = transforms.ToTensor()
@@ -18,19 +21,26 @@ def pretrain(model,chars,char2idx,idx2char,n_epochs,batch_size,PATH_TO_SOURCE,be
   valid_loss_all = []
   train_loss_all = []
 
+
+  optimizer = optim.AdamW(model.parameters(), lr=hp.lr)
+  criterion = nn.CrossEntropyLoss(ignore_index=char2idx['PAD'])
+  scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
+
   for epoch in range(n_epochs):
     print('----EPOCH {}----'.format(epoch))
     start_time = time.time()
     epoch_loss = 0
     batch = g.generate_batch(batch_size=batch_size)
     for x,y in batch:
-      x, y = trans(x), trans(y)
+      y = [char2idx[i] for i in y]
+      x = trans(x)
+      print(y)
+      y = torch.Tensor(y)
       x, y = x.cuda(), y.cuda()
-
       optimizer.zero_grad()
-      output = model(src, trg[:-1, :])
+      output = model(x, y[:-1, :])
 
-      loss = criterion(output.view(-1, output.shape[-1]), torch.reshape(trg[1:, :], (-1,)))
+      loss = criterion(output.view(-1, output.shape[-1]), torch.reshape(y[1:, :], (-1,)))
       loss.backward()
       optimizer.step()
       epoch_loss += loss.item()
@@ -109,45 +119,45 @@ def pretrain(model,chars,char2idx,idx2char,n_epochs,batch_size,PATH_TO_SOURCE,be
               print(cer)
   
       
-    eval_loss_cer, eval_accuracy = return error_p / len(dataloader) * 100, error_w / len(dataloader) * 100
+    eval_loss_cer, eval_accuracy = error_p / len(dataloader) * 100, error_w / len(dataloader) * 100
     eval_loss_cer_all.append(eval_loss_cer)
     eval_accuracy_all.append(eval_accuracy)
 
     if eval_loss_cer < best_eval_loss_cer:
-            count_bad = 0
-            best_eval_loss_cer = eval_loss_cer
-            torch.save({
-                'model': model.state_dict(),
-                'epoch': epoch,
-                'best_eval_loss_cer': best_eval_loss_cer,
-                'valid_loss_all': valid_loss_all,
-                'train_loss_all': train_loss_all,
-                'eval_loss_cer_all': eval_loss_cer_all,
-                'eval_accuracy_all': eval_accuracy_all,
-            }, path.log+'resnet50_trans_%.3f.pt' % (best_eval_loss_cer))
-            print('Save best model')
-        else:
-            count_bad += 1
-            torch.save({
-                'model': model.state_dict(),
-                'epoch': epoch,
-                'best_eval_loss_cer': best_eval_loss_cer,
-                'valid_loss_all': valid_loss_all,
-                'train_loss_all': train_loss_all,
-                'eval_loss_cer_all': eval_loss_cer_all,
-                'eval_accuracy_all': eval_accuracy_all,
-            }, path.log+'resnet50_trans_last.pt')
-            print('Save model')
+      count_bad = 0
+      best_eval_loss_cer = eval_loss_cer
+      torch.save({
+          'model': model.state_dict(),
+          'epoch': epoch,
+          'best_eval_loss_cer': best_eval_loss_cer,
+          'valid_loss_all': valid_loss_all,
+          'train_loss_all': train_loss_all,
+          'eval_loss_cer_all': eval_loss_cer_all,
+          'eval_accuracy_all': eval_accuracy_all,
+      }, path.log+'resnet50_trans_%.3f.pt' % (best_eval_loss_cer))
+      print('Save best model')
+    else:
+      count_bad += 1
+      torch.save({
+          'model': model.state_dict(),
+          'epoch': epoch,
+          'best_eval_loss_cer': best_eval_loss_cer,
+          'valid_loss_all': valid_loss_all,
+          'train_loss_all': train_loss_all,
+          'eval_loss_cer_all': eval_loss_cer_all,
+          'eval_accuracy_all': eval_accuracy_all,
+      }, path.log+'resnet50_trans_last.pt')
+      print('Save model')
 
-        if logging:
-            wandb.log({'Train loss WER': train_loss, "Validation loss WER": valid_loss, 'Validation Word Accuracy': 100 - eval_accuracy,
-                   'Validation loss CER': eval_loss_cer})
+    if logging:
+        wandb.log({'Train loss WER': train_loss, "Validation loss WER": valid_loss, 'Validation Word Accuracy': 100 - eval_accuracy,
+                'Validation loss CER': eval_loss_cer})
 
-        print(f'Time: {time.time() - start_time}s')
-        print(f'Train Loss: {train_loss:.4f}')
-        print(f'Val   Loss: {valid_loss:.4f}')
-        print(f'Eval loss CER: {eval_loss_cer:.4f}')
-        print(f'Eval accuracy: {100 - eval_accuracy:.4f}')
-        if count_bad > 19:
-            break
+    print(f'Time: {time.time() - start_time}s')
+    print(f'Train Loss: {train_loss:.4f}')
+    print(f'Val   Loss: {valid_loss:.4f}')
+    print(f'Eval loss CER: {eval_loss_cer:.4f}')
+    print(f'Eval accuracy: {100 - eval_accuracy:.4f}')
+    if count_bad > 19:
+        break
 
