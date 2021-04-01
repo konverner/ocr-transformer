@@ -12,9 +12,11 @@ import pickle
 
 def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,chk=None):
 
+  # CHECK WHETHER OR NOT CHECKPOINT IS PROVIDED
   if chk != None:
     model ,epochs, best_eval_loss_cer, valid_loss_all, train_loss_all, eval_accuracy_all, eval_loss_cer_all = load_from_checkpoint(model,chk)
 
+  # CREATE MAPS FROM CHARACTERS TO INDICIES AND VISA VERSA
   char2idx = {char: idx for idx, char in enumerate(chars)}
   idx2char = {idx: char for idx, char in enumerate(chars)}
   print('Characters:', len(chars), ':', ' '.join(chars))
@@ -23,23 +25,30 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,chk=None):
   criterion = nn.CrossEntropyLoss(ignore_index=char2idx['PAD'])
   scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
+  # DEFINE GENERATOR AND UPLOAD TEXT SOURCE FOR IT
   g = handwritting_generator.Generator()
   g.upload_source(PATH_TO_SOURCE)
   TEMP_PATH = '/content/temp/'
-  if os.path.isfile('/content/temp/labels.tsv'):
-    os.remove('/content/temp/labels.tsv')
-  labels_file = open('/content/temp/labels.tsv','w',encoding='utf-8')
   N = int(n_epochs/5)
 
   for j in range(5):
+    # GENERATE BATCH OF SYNTHATIC DATA
     print('new data chunk have generated')
     chunk = g.generate_batch(15000)
+    
+    # SAVE IMAGES AND CORRISPONDENT LABELS INTO DIRECTORY 
+    if os.path.isfile('/content/temp/labels.tsv'):
+      os.remove('/content/temp/labels.tsv')
+    labels_file = open('/content/temp/labels.tsv','w',encoding='utf-8')
+
     i = 0
     for x,y in chunk:
       x.save(TEMP_PATH+'temp'+str(i)+'.png')
       _ = labels_file.write('temp'+str(i)+'.png'+'\t'+y+'\n')
       i += 1
     labels_file.close()
+
+    # CREATE DATA LOADER FOR CURRENT CHUNK OF DATA
     img2label, _, all_words = process_data('/content/temp/', "/content/temp/labels.tsv",ignore=[])
 
     X_val, y_val, X_train, y_train = train_valid_split(img2label,val_part=0.1)
