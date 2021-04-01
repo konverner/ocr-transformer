@@ -27,11 +27,11 @@ def train(model, optimizer, criterion, iterator,logging=True):
     return epoch_loss / len(iterator)
 
 # Общая функция обучения и валидации
-def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, train_loader, val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,eval_accuracy_all,logging=True):
+def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, train_loader, val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,eval_accuracy_all,logging=True,epoch_limit=1000):
     train_loss = 0
     count_bad = 0
     confuse_dict = dict()
-    for epoch in range(epochs, 1000):
+    for epoch in range(epochs, epoch_limit):
         print(f'Epoch: {epoch + 1:02}')
         start_time = time.time()
         print("-----------train------------")
