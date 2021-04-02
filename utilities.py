@@ -236,12 +236,12 @@ def test(model,image_dir,trans_dir,char2idx,idx2char,case=True):
       if true_trans != predicted_trans:
         print('true:', true_trans)
         print('predicted:', predicted_trans)
-        print('cer:', 1 - char_error_rate(predicted_trans,true_trans))
+        print('cer:', char_error_rate(predicted_trans,true_trans))
         print('---')
         wer += 1
-        cer += 1 - char_error_rate(predicted_trans,true_trans)
+        cer += char_error_rate(predicted_trans,true_trans)
 
-    return 1 - (wer/N), cer/N
+    return 1 - (wer/N), 1 - cer/N
 
 
 # Предсказания
