@@ -10,7 +10,25 @@ from train import *
 import wandb
 import pickle
 
-def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,chk=None):
+def prepair_validation(PATH_TO_SOURCE_VALID):
+  g = handwritting_generator.Generator()
+  g.upload_source(PATH_TO_SOURCE_VALID)
+  chunk = g.generate_batch(3500)
+  
+  labels_file = open('/content/temp_valid/labels_valid.tsv','w',encoding='utf-8')
+
+  i = 0
+  for x,y in chunk:
+    x.save('/content/temp_valid/temp_valid'+str(i)+'.png')
+    _ = labels_file.write('temp_valid'+str(i)+'.png'+'\t'+y+'\n')
+    i += 1
+  labels_file.close()
+  img2label, _, all_words = process_data('/content/temp_valid/', "/content/temp_valid/labels_valid.tsv",ignore=[])
+
+  X_val, y_val, _, _ = train_valid_split(img2label,val_part=1.0)
+  return X_val, y_val
+
+def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID,chk=None):
 
   # CHECK WHETHER OR NOT CHECKPOINT IS PROVIDED
   if chk != None:
@@ -30,6 +48,8 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,chk=None):
   g.upload_source(PATH_TO_SOURCE)
   TEMP_PATH = '/content/temp/'
   N = int(n_epochs/5)
+
+  X_val, y_val = prepair_validation(PATH_TO_SOURCE_VALID)
 
   for j in range(5):
     # GENERATE BATCH OF SYNTHATIC DATA
@@ -51,7 +71,7 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,chk=None):
     # CREATE DATA LOADER FOR CURRENT CHUNK OF DATA
     img2label, _, all_words = process_data('/content/temp/', "/content/temp/labels.tsv",ignore=[])
 
-    X_val, y_val, X_train, y_train = train_valid_split(img2label,val_part=0.1)
+    _, _, X_train, y_train = train_valid_split(img2label,val_part=0.0)
 
     X_train = generate_data(X_train, '/content/temp/')
     X_val = generate_data(X_val,'/content/temp/')
