@@ -1,10 +1,9 @@
-import re, io, copy, shutil, cv2, os, editdistance
+import re, io, copy, shutil, cv2, os, editdistance ,pickle, torch
 from os.path import join
 import numpy as np
 from collections import Counter
 from tqdm import tqdm
 from config import *
-import torch
 import matplotlib.pyplot as plt
 import wandb
 
@@ -321,6 +320,18 @@ def confused_chars(string_true,string_predict,conf_dict):
             conf_dict[string_true[i]].append([string_predict[i],1])
 
   return conf_dict
+
+def print_confuse_dict(PATH : str):
+  '''
+  PATH : path to pickle file with confuse matrix
+  '''
+  PATH = PATH
+  d = pickle.load(open(PATH,'rb'))
+  for d_i in d.items():
+    print(d_i[0])
+    xs, ys = [*zip(*d_i[1])]
+    plt.bar(xs, ys, align='center')
+    plt.show()
 
 def get_mixed_data(pretrain_image_dir,pretrain_labels_dir,train_image_dir,train_labels_dir,pretrain_part=0.3):
   img2label1, chars1, all_words1 = process_data(pretrain_image_dir,pretrain_labels_dir) # PRETRAIN PART
