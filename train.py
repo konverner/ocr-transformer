@@ -39,7 +39,7 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
         print("\n-----------valid------------")
         valid_loss = evaluate(model, criterion, val_loader,logging=logging)
         print("-----------eval------------")
-        eval_loss_cer, eval_accuracy, confuse_dict = validate(model, val_loader, show=20,logging=logging,confuse_dict=confuse_dict,epoch=epoch)
+        eval_loss_cer, eval_accuracy, confuse_dict = validate(model, val_loader, show=50,logging=logging,confuse_dict=confuse_dict,epoch=epoch)
         scheduler.step(eval_loss_cer)
         valid_loss_all.append(valid_loss)
         train_loss_all.append(train_loss)
@@ -136,7 +136,7 @@ def validate(model, dataloader,show,logging,confuse_dict,epoch):
               confuse_dict = confused_chars(real_char,out_char,confuse_dict)
 
             error_p += cer
-            if show > show_count:
+            if show > show_count and out_char != real_char:
                 # plt.imshow(img)
                 # plt.show()
                 if logging:
@@ -148,9 +148,4 @@ def validate(model, dataloader,show,logging,confuse_dict,epoch):
                 print('Pred:', out_char)
                 print(cer)
     
-    if epoch%5 == 0:
-      for key in confuse_dict.keys():
-        print('{} is confused with'.format(key))
-        print(confuse_dict[key])
-      
     return error_p / len(dataloader) * 100, error_w / len(dataloader) * 100, confuse_dict
