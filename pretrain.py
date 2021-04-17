@@ -20,7 +20,10 @@ def prepair_validation(PATH_TO_SOURCE_VALID):
   i = 0
   for x,y in chunk:
     x.save('/content/temp_valid/temp_valid'+str(i)+'.png')
-    _ = labels_file.write('temp_valid'+str(i)+'.png'+'\t'+y+'\n')
+    if i == 3499:
+      _ = labels_file.write('temp_valid'+str(i)+'.png'+'\t'+y)
+    else:   
+      _ = labels_file.write('temp_valid'+str(i)+'.png'+'\t'+y+'\n')
     i += 1
   labels_file.close()
   img2label, _, all_words = process_data('/content/temp_valid/', "/content/temp_valid/labels_valid.tsv",ignore=[])
@@ -64,7 +67,10 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID
     i = 0
     for x,y in chunk:
       x.save(TEMP_PATH+'temp'+str(i)+'.png')
-      _ = labels_file.write('temp'+str(i)+'.png'+'\t'+y+'\n')
+      if i == 14999:
+        _ = labels_file.write('temp'+str(i)+'.png'+'\t'+y)
+      else:
+        _ = labels_file.write('temp'+str(i)+'.png'+'\t'+y+'\n')
       i += 1
     labels_file.close()
 
