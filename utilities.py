@@ -286,8 +286,7 @@ def prediction(model, test_dir,char2idx,idx2char):
                     break
 
             pred = labels_to_text(out_indexes[1:], idx2char)
-            # print('pred:',p_values,pred)
-            preds[filename] = pred
+            preds[filename] = {'pred':pred,'p_values':p_values}
 
     return preds
 
