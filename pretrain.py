@@ -53,6 +53,11 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID
   N = int(n_epochs/5)
 
   X_val, y_val = prepair_validation(PATH_TO_SOURCE_VALID)
+  X_val = generate_data(X_val,'/content/temp_valid/')
+  val_dataset = TextLoader(X_val, y_val, char2idx,idx2char, eval=True)
+  val_loader = torch.utils.data.DataLoader(val_dataset, shuffle=False,
+                                          batch_size=1, pin_memory=False,
+                                          drop_last=False, collate_fn=TextCollate())
 
   for j in range(5):
     # GENERATE BATCH OF SYNTHATIC DATA
@@ -80,17 +85,10 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID
     _, _, X_train, y_train = train_valid_split(img2label,val_part=0.0)
 
     X_train = generate_data(X_train, '/content/temp/')
-    X_val = generate_data(X_val,'/content/temp/')
-
     train_dataset = TextLoader(X_train, y_train, char2idx ,idx2char, eval=False)
     train_loader = torch.utils.data.DataLoader(train_dataset, shuffle=True,
                                               batch_size=hp.batch_size, pin_memory=True,
                                               drop_last=True, collate_fn=TextCollate())
-
-    val_dataset = TextLoader(X_val, y_val, char2idx,idx2char, eval=True)
-    val_loader = torch.utils.data.DataLoader(val_dataset, shuffle=False,
-                                            batch_size=1, pin_memory=False,
-                                            drop_last=False, collate_fn=TextCollate())
 
     valid_loss_all, train_loss_all, eval_accuracy_all, eval_loss_cer_all = [], [], [], []
     epochs, best_eval_loss_cer = 0, float('inf')
