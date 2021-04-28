@@ -70,7 +70,7 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID
 
     i = 0
     for x,y in chunk:
-      x.save(TEMP_PATH+'temp'+str(i)+'.png')
+      x.save(PATH_TEMP+'temp'+str(i)+'.png')
       if i == 14999:
         _ = labels_file.write('temp'+str(i)+'.png'+'\t'+y)
       else:
