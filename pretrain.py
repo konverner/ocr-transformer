@@ -52,7 +52,7 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID
   TEMP_PATH = '/content/temp/'
   N = int(n_epochs/5)
 
-  X_val, y_val = prepair_validation(PATH_TO_SOURCE_VALID)
+  X_val, y_val = prepair_validation(PATH_TO_SOURCE_VALID,PATH_TEMP)
   X_val = generate_data(X_val,'/content/temp_valid/')
   val_dataset = TextLoader(X_val, y_val, char2idx,idx2char, eval=True)
   val_loader = torch.utils.data.DataLoader(val_dataset, shuffle=False,
