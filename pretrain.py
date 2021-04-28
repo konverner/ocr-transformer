@@ -15,7 +15,7 @@ def prepair_validation(PATH_TO_SOURCE_VALID,PATH_TEMP_VALID):
   g.upload_source(PATH_TO_SOURCE_VALID)
   chunk = g.generate_batch(3500)
   
-  labels_file = open(PATH_TEMP_VALID,'w',encoding='utf-8')
+  labels_file = open(PATH_TEMP_VALID+'labels_valid.tsv','w',encoding='utf-8')
 
   i = 0
   for x,y in chunk:
