@@ -58,7 +58,7 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID
                                           batch_size=1, pin_memory=False,
                                           drop_last=False, collate_fn=TextCollate())
 
-  for j in range(5):
+  for j in range(3):
     # GENERATE BATCH OF SYNTHATIC DATA
     print('new data chunk have generated')
     chunk = g.generate_batch(15000)
