@@ -49,11 +49,11 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID
   # DEFINE GENERATOR AND UPLOAD TEXT SOURCE FOR IT
   g = handwritting_generator.Generator()
   g.upload_source(PATH_TO_SOURCE)
-  TEMP_PATH = '/content/temp/'
+  TEMP_PATH = PATH_TEMP_VALID
   N = int(n_epochs/5)
 
   X_val, y_val = prepair_validation(PATH_TO_SOURCE_VALID,PATH_TEMP)
-  X_val = generate_data(X_val,'/content/temp_valid/')
+  X_val = generate_data(X_val,PATH_TEMP_VALID)
   val_dataset = TextLoader(X_val, y_val, char2idx,idx2char, eval=True)
   val_loader = torch.utils.data.DataLoader(val_dataset, shuffle=False,
                                           batch_size=1, pin_memory=False,
