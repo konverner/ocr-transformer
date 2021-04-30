@@ -173,7 +173,7 @@ def load_from_checkpoint(model,chk_path):
     best_eval_loss_cer = float('-inf')
     if chk_path:
         if torch.cuda.is_available():
-          ckpt = torch.load(chk_path
+          ckpt = torch.load(chk_path)
         else:
           ckpt = torch.load(chk_path,  map_location=torch.device('cpu'))
         if 'model' in ckpt:
