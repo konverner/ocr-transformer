@@ -172,7 +172,10 @@ def load_from_checkpoint(model,chk_path):
     epochs = 0
     best_eval_loss_cer = float('-inf')
     if chk_path:
-        ckpt = torch.load(chk_path)
+        if torch.cuda.is_available():
+          ckpt = torch.load(chk_path
+        else:
+          ckpt = torch.load(chk_path,  map_location=torch.device('cpu'))
         if 'model' in ckpt:
             model.load_state_dict(ckpt['model'])
         else:
@@ -256,7 +259,9 @@ def prediction(model, test_dir,char2idx,idx2char):
             img = img / img.max()
             img = np.transpose(img, (2, 0, 1))
 
-            src = torch.FloatTensor(img).unsqueeze(0).cuda()
+            src = torch.FloatTensor(img).unsqueeze(0)
+            if torch.cuda.is_available():
+              src = src.cuda()
 
             x = model.backbone.conv1(src)
             x = model.backbone.bn1(x)
