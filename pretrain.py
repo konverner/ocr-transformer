@@ -31,9 +31,22 @@ def prepair_validation(PATH_TO_SOURCE_VALID,PATH_TEMP_VALID):
   X_val, y_val, _, _ = train_valid_split(img2label,val_part=1.0)
   return X_val, y_val
 
-def pretrain(model,chars,epochs_per_chunk,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID,PATH_TEMP,PATH_TEMP_VALID,chk=None):
+def pretrain(model,chars,epochs_per_chunk,batch_size,chk=None):
   '''
-  blach
+  model : nn.Module
+  chars : list 
+    list of chars to learn
+  epochs_per_chunk : int
+    how many epochs will be allocated to one chunk (15k) of pretrain data
+  batch_size : int
+  PATH_TO_SOURCE : str
+    txt file with pretrain expressions for handwritting generator
+  PATH_TO_SOURCE_VALID : str
+    txt file with validation expressions for handwritting generator
+  PATH_TEMP : str 
+    path where pretrain images will be stored during training
+  chk : str
+    path to .pt checkpoint
   '''
   # CHECK WHETHER OR NOT CHECKPOINT IS PROVIDED
   if chk != None:
