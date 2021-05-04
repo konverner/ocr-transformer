@@ -31,8 +31,10 @@ def prepair_validation(PATH_TO_SOURCE_VALID,PATH_TEMP_VALID):
   X_val, y_val, _, _ = train_valid_split(img2label,val_part=1.0)
   return X_val, y_val
 
-def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID,PATH_TEMP,PATH_TEMP_VALID,chk=None):
-
+def pretrain(model,chars,epochs_per_chunk,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID,PATH_TEMP,PATH_TEMP_VALID,chk=None):
+  '''
+  blach
+  '''
   # CHECK WHETHER OR NOT CHECKPOINT IS PROVIDED
   if chk != None:
     model ,epochs, best_eval_loss_cer, valid_loss_all, train_loss_all, eval_accuracy_all, eval_loss_cer_all = load_from_checkpoint(model,chk)
@@ -98,4 +100,4 @@ def pretrain(model,chars,n_epochs,batch_size,PATH_TO_SOURCE,PATH_TO_SOURCE_VALID
     train_all(model,optimizer,criterion,scheduler,0,\
           best_eval_loss_cer,train_loader,\
           val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,\
-          eval_accuracy_all,logging=True,epoch_limit=10)
+          eval_accuracy_all,logging=True,epoch_limit=epochs_per_chunk)
