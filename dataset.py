@@ -8,6 +8,8 @@ from config import *
 from utilities import *
 import augmentations
 import Augmentor
+
+### AUGMENTATIONS ###
 vignet=augmentations.Vignetting()
 cutout = augmentations.Cutout(min_size_ratio=[1,4],max_size_ratio=[2,5])
 un = augmentations.UniformNoise()
@@ -16,11 +18,12 @@ p = Augmentor.Pipeline()
 ld = augmentations.LensDistortion()
 p.shear(max_shear_left=2,max_shear_right=2,probability=0.7)
 p.random_distortion(probability=1.0, grid_width=3, grid_height=3, magnitude=11)
-# Перевести текст в массив индексов
+######################
+
+# text to array of indicies
 def text_to_labels(s, char2idx):
     return [char2idx['SOS']] + [char2idx[i] for i in s if i in char2idx.keys()] + [char2idx['EOS']]
 
-# Датасет загрузки изображений и тексты
 class TextLoader(torch.utils.data.Dataset):
     def __init__(self ,name_image ,label, char2idx,idx2char,eval=False):
         self.name_image = name_image
