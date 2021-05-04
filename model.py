@@ -6,10 +6,10 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 class TransformerModel(nn.Module):
-    def __init__(self, name, outtoken, hidden, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=False):
+    def __init__(self, bb_name, outtoken, hidden, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=False):
         # здесь загружаем сверточную модель, например, resnet50
         super(TransformerModel, self).__init__()
-        self.backbone = models.__getattribute__(name)(pretrained=pretrained)
+        self.backbone = models.__getattribute__(bb_name)(pretrained=pretrained)
         # self.backbone.avgpool = nn.MaxPool2d((4, 1))
         self.backbone.fc = nn.Conv2d(2048, int(hidden/2), 1)
 
@@ -24,6 +24,11 @@ class TransformerModel(nn.Module):
         self.src_mask = None
         self.trg_mask = None
         self.memory_mask = None
+        
+        print('backbone:'.format(bb_name))
+        print('layers:'.format(enc_layers))
+        print('heads:'.format(nhead))
+        print('dropout:'.format(dropout))
 
     def generate_square_subsequent_mask(self, sz):
         mask = torch.triu(torch.ones(sz, sz), 1)
