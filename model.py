@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+from utilities import count_parameters
 
 class TransformerModel(nn.Module):
     def __init__(self, bb_name, outtoken, hidden, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=False):
@@ -29,6 +30,7 @@ class TransformerModel(nn.Module):
         print('layers:'.format(enc_layers))
         print('heads:'.format(nhead))
         print('dropout:'.format(dropout))
+        print(f'{count_parameters(model):,} trainable parameters')
 
     def generate_square_subsequent_mask(self, sz):
         mask = torch.triu(torch.ones(sz, sz), 1)
