@@ -39,12 +39,6 @@ def pretrain(model,chars,epochs_per_chunk,batch_size,chk=None):
   epochs_per_chunk : int
     how many epochs will be allocated to one chunk (15k) of pretrain data
   batch_size : int
-  PATH_TO_SOURCE : str
-    txt file with pretrain expressions for handwritting generator
-  PATH_TO_SOURCE_VALID : str
-    txt file with validation expressions for handwritting generator
-  PATH_TEMP : str 
-    path where pretrain images will be stored during training
   chk : str
     path to .pt checkpoint
   '''
