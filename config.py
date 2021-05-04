@@ -6,7 +6,7 @@ class Hparams():
 
         # SETS OF CHARACTERS
         self.cyrillic = ['PAD', 'SOS', ' ', '!', '"', '%', '(', ')', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '?', '[', ']', '«', '»', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Э', 'Ю', 'Я', 'а', 'б', 'в', 'г', 'д', 'е', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', 'ё', 'EOS']
-        # Символы, которые надо удалить
+        # CHARS TO REMOVE
         self.del_sym = []
 
         self.lr = 1e-4
@@ -28,15 +28,15 @@ class Paths():
 
         # checkpoint for training
         self.chk = None
-
-        self.pretrain_labels_dir = r"/content/werner_pretrain/labels.tsv"
-        self.pretrain_image_dir = r"/content/werner_pretrain/pretrain/"
-
-        self.train_labels_dir = r"/content/real_cyr_dataset/real_cyr_data.tsv"
-        self.train_image_dir = r"/content/real_cyr_dataset/real_cyr_data/"
-
-        self.test_labels_dir = r'/content/OCR_DATASET_146k/OCR_DATASET_SYNTH_146k.txt'
-        self.test_image_dir = r'/content/OCR_DATASET_146k/OCR_DATASET_SYNTH_146k/'
+       
+        #txt file with pretrain expressions for handwritting generator
+        self.PATH_TO_SOURCE = '/content/pretrain/source.txt'
+        # txt file with validation expressions for handwritting generator
+        self.PATH_TO_SOURCE_VALID = '/content/pretrain/source_valid.txt'
+        # path where pretrain images will be stored during training
+        self.PATH_TEMP = '/content/pretrain/temp/' 
+        # path where validation images will be stored during training
+        self.PATH_TEMP_VALID = '/content/pretrain/temp_valid/'
 
 
 random.seed(1488)
