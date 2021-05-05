@@ -30,7 +30,7 @@ class TransformerModel(nn.Module):
         print('layers:'.format(enc_layers))
         print('heads:'.format(nhead))
         print('dropout:'.format(dropout))
-        print(f'{count_parameters(model):,} trainable parameters')
+        print(f'{count_parameters(self):,} trainable parameters')
 
     def generate_square_subsequent_mask(self, sz):
         mask = torch.triu(torch.ones(sz, sz), 1)
