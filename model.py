@@ -26,10 +26,10 @@ class TransformerModel(nn.Module):
         self.trg_mask = None
         self.memory_mask = None
         
-        print('backbone:'.format(bb_name))
-        print('layers:'.format(enc_layers))
-        print('heads:'.format(nhead))
-        print('dropout:'.format(dropout))
+        print('backbone: {}'.format(bb_name))
+        print('layers: {}'.format(enc_layers))
+        print('heads: {}'.format(nhead))
+        print('dropout: {}'.format(dropout))
         print(f'{count_parameters(self):,} trainable parameters')
 
     def generate_square_subsequent_mask(self, sz):
