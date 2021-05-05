@@ -12,21 +12,21 @@ import pickle
 
 def prepair_validation(PATH_TO_SOURCE_VALID,PATH_TEMP_VALID):
   g = handwritting_generator.Generator()
-  g.upload_source(PATH_TO_SOURCE_VALID)
+  g.upload_source(path.PATH_TO_SOURCE_VALID)
   chunk = g.generate_batch(3500)
   
-  labels_file = open(PATH_TEMP_VALID+'labels_valid.tsv','w',encoding='utf-8')
+  labels_file = open(path.PATH_TEMP_VALID+'labels_valid.tsv','w',encoding='utf-8')
 
   i = 0
   for x,y in chunk:
-    x.save(PATH_TEMP_VALID+'temp_valid'+str(i)+'.png')
+    x.save(path.PATH_TEMP_VALID+'temp_valid'+str(i)+'.png')
     if i == 3499:
       _ = labels_file.write('temp_valid'+str(i)+'.png'+'\t'+y)
     else:   
       _ = labels_file.write('temp_valid'+str(i)+'.png'+'\t'+y+'\n')
     i += 1
   labels_file.close()
-  img2label, _, all_words = process_data(PATH_TEMP_VALID, PATH_TEMP_VALID+"labels_valid.tsv",ignore=[])
+  img2label, _, all_words = process_data(path.PATH_TEMP_VALID, path.PATH_TEMP_VALID+"labels_valid.tsv",ignore=[])
 
   X_val, y_val, _, _ = train_valid_split(img2label,val_part=1.0)
   return X_val, y_val
@@ -57,29 +57,28 @@ def pretrain(model,chars,epochs_per_chunk,batch_size,chk=None):
 
   # DEFINE GENERATOR AND UPLOAD TEXT SOURCE FOR IT
   g = handwritting_generator.Generator()
-  g.upload_source(PATH_TO_SOURCE)
-  N = int(n_epochs/5)
+  g.upload_source(path.PATH_TO_SOURCE)
 
-  X_val, y_val = prepair_validation(PATH_TO_SOURCE_VALID,PATH_TEMP_VALID)
-  X_val = generate_data(X_val,PATH_TEMP_VALID)
+  X_val, y_val = prepair_validation(path.PATH_TO_SOURCE_VALID,path.PATH_TEMP_VALID)
+  X_val = generate_data(X_val,path.PATH_TEMP_VALID)
   val_dataset = TextLoader(X_val, y_val, char2idx,idx2char, eval=True)
   val_loader = torch.utils.data.DataLoader(val_dataset, shuffle=False,
                                           batch_size=1, pin_memory=False,
                                           drop_last=False, collate_fn=TextCollate())
 
-  for j in range(3):
+  for j in range(100):
     # GENERATE BATCH OF SYNTHATIC DATA
     print('new data chunk have generated')
     chunk = g.generate_batch(15000)
     
     # SAVE IMAGES AND CORRISPONDENT LABELS INTO DIRECTORY 
-    if os.path.isfile(PATH_TEMP+'labels.tsv'):
-      os.remove(PATH_TEMP+'labels.tsv')
-    labels_file = open(PATH_TEMP+'labels.tsv','w',encoding='utf-8')
+    if os.path.isfile(path.PATH_TEMP+'labels.tsv'):
+      os.remove(path.PATH_TEMP+'labels.tsv')
+    labels_file = open(path.PATH_TEMP+'labels.tsv','w',encoding='utf-8')
 
     i = 0
     for x,y in chunk:
-      x.save(PATH_TEMP+'temp'+str(i)+'.png')
+      x.save(path.PATH_TEMP+'temp'+str(i)+'.png')
       if i == 14999:
         _ = labels_file.write('temp'+str(i)+'.png'+'\t'+y)
       else:
@@ -88,11 +87,11 @@ def pretrain(model,chars,epochs_per_chunk,batch_size,chk=None):
     labels_file.close()
 
     # CREATE DATA LOADER FOR CURRENT CHUNK OF DATA
-    img2label, _, all_words = process_data(PATH_TEMP, PATH_TEMP+"labels.tsv",ignore=[])
+    img2label, _, all_words = process_data(path.PATH_TEMP, path.PATH_TEMP+"labels.tsv",ignore=[])
 
     _, _, X_train, y_train = train_valid_split(img2label,val_part=0.0)
 
-    X_train = generate_data(X_train, PATH_TEMP)
+    X_train = generate_data(X_train, path.PATH_TEMP)
     train_dataset = TextLoader(X_train, y_train, char2idx ,idx2char, eval=False)
     train_loader = torch.utils.data.DataLoader(train_dataset, shuffle=True,
                                               batch_size=hp.batch_size, pin_memory=True,
