@@ -30,13 +30,13 @@ class Paths():
         self.chk = None
        
         #txt file with pretrain expressions for handwritting generator
-        self.PATH_TO_SOURCE = '/content/pretrain/source.txt'
+        self.PATH_TO_SOURCE = '../input/pretrain/source.txt'
         # txt file with validation expressions for handwritting generator
-        self.PATH_TO_SOURCE_VALID = '/content/pretrain/source_valid.txt'
+        self.PATH_TO_SOURCE_VALID = '../input/pretrain/source_valid.txt'
         # path where pretrain images will be stored during training
-        self.PATH_TEMP = '/content/pretrain/temp/' 
+        self.PATH_TEMP = './pretrain/temp/'
         # path where validation images will be stored during training
-        self.PATH_TEMP_VALID = '/content/pretrain/temp_valid/'
+        self.PATH_TEMP_VALID = "./pretrain/temp_valid/'
 
 
 random.seed(1488)
