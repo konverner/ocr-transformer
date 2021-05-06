@@ -36,7 +36,7 @@ class Paths():
         # path where pretrain images will be stored during training
         self.PATH_TEMP = './pretrain/temp/'
         # path where validation images will be stored during training
-        self.PATH_TEMP_VALID = "./pretrain/temp_valid/'
+        self.PATH_TEMP_VALID = "./pretrain/temp_valid/"
 
 
 random.seed(1488)
