@@ -152,6 +152,9 @@ def generate_data(names, image_dir):
     data_images = []
     for name in tqdm(names):
         img = cv2.imread(name)
+        if type(img) == None:
+            print(name)
+            img = process_image(img) 
         img = process_image(img)            
         data_images.append(img.astype('uint8'))
     return data_images
