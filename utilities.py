@@ -130,7 +130,6 @@ def char_error_rate(p_seq1, p_seq2):
 def process_image(img):
     # img  = np.stack([img, img, img], axis=-1)
     w, h, _ = img.shape
-
     new_w = hp.height
     new_h = int(h * (new_w / w))
     img = cv2.resize(img, (new_h, new_w))
@@ -153,11 +152,8 @@ def generate_data(names, image_dir):
     data_images = []
     for name in tqdm(names):
         img = cv2.imread(name)
-        if type(img) == type(None):
-            print("ValueError:",name)
-        else:
-            img = process_image(img)            
-            data_images.append(img.astype('uint8'))
+        img = process_image(img)            
+        data_images.append(img.astype('uint8'))
     return data_images
 
 
