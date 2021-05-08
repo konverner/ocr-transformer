@@ -340,8 +340,8 @@ def print_confuse_dict(PATH : str):
 def get_mixed_data(pretrain_image_dir,pretrain_labels_dir,train_image_dir,train_labels_dir,pretrain_part=0.3):
   img2label1, chars1, all_words1 = process_data(pretrain_image_dir,pretrain_labels_dir) # PRETRAIN PART
   img2label2, chars2, all_words2 = process_data(train_image_dir,train_labels_dir) # TRAIN PART
-  N = int(len(img2label2)*pretrain_part)
   img2label1_list = list(img2label1.items())
+  N = len(img2label1_list)
   for i in range(N):
     j = np.random.randint(0,N)
     item = img2label1_list[j]
