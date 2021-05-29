@@ -228,20 +228,20 @@ def test(model,image_dir,trans_dir,char2idx,idx2char,case=True):
 
       if 'ё' in true_trans:
         true_trans = true_trans.replace('ё','е')
-      if 'ё' in predicted_trans:
-        predicted_trans = predicted_trans.replace('ё','е')
+      if 'ё' in predicted_trans['pred']:
+        predicted_trans['pred'] = predicted_trans['pred'].replace('ё','е')
 
       if not case:
         true_trans=true_trans.lower()
-        predicted_trans=predicted_trans.lower()
+        predicted_trans['pred']=predicted_trans['pred'].lower()
 
-      if true_trans != predicted_trans:
+      if true_trans != predicted_trans['pred']:
         print('true:', true_trans)
         print('predicted:', predicted_trans)
-        print('cer:', char_error_rate(predicted_trans,true_trans))
+        print('cer:', char_error_rate(predicted_trans['pred'],true_trans))
         print('---')
         wer += 1
-        cer += char_error_rate(predicted_trans,true_trans)
+        cer += char_error_rate(predicted_trans['pred'],true_trans)
 
     return 1 - (wer/N), 1 - cer/N
 
