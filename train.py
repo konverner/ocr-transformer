@@ -75,7 +75,7 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
 
         if logging:
             wandb.log({'Train loss WER': train_loss, "Validation loss WER": valid_loss, 'Validation Word Accuracy': 100 - eval_accuracy,
-                   'Validation loss CER': eval_loss_cer,'Learning Rate': scheduler.get_lr()})
+                   'Validation loss CER': eval_loss_cer,'Learning Rate':scheduler._last_lr[0]})
 
         print(f'Time: {time.time() - start_time}s')
         print(f'Train Loss: {train_loss:.4f}')
