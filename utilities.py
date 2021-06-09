@@ -1,11 +1,11 @@
 import re, io, copy, shutil, cv2, os, editdistance ,pickle, torch
-from os.path import join
 import numpy as np
+import matplotlib.pyplot as plt
+import wandb
 from collections import Counter
 from tqdm import tqdm
 from config import *
-import matplotlib.pyplot as plt
-import wandb
+from os.path import join
 
 def process_data(image_dir, labels_dir,ignore=[]):
     '''
@@ -57,20 +57,24 @@ def process_data(image_dir, labels_dir,ignore=[]):
     return img2label, chars, all_labels
 
 
+# SPLIT DATASET INTO TRAIN AND VALID PARTS
 def train_valid_split(img2label, val_part=0.3):
     '''
     params
     ---
     img2label : dict
-        keys are
+        keys are paths to images, values are labels (transcripts of crops) 
 
     returns
     ---
-    imgs_val
-    labels_val
-
-    imgs_train
-    labels_train
+    imgs_val : list of str
+        paths 
+    labels_val : list of str
+        labels
+    imgs_train : list of str
+        paths
+    labels_train : list of str
+        labels
     '''
 
     imgs_val, labels_val = [], []
@@ -107,17 +111,40 @@ class TextCollate():
         return x_padded, y_padded
 
 
-# Перевести индексы в текст
-def labels_to_text(s, idx2p):
-    S = "".join([idx2p[i] for i in s])
+# TRANSLATE INDICIES TO TEXT
+def labels_to_text(s, idx2char):
+    '''
+    paramters
+    ---
+    idx2char : dict
+        keys : int
+            indicies of characters
+        values : str
+            characters
+
+    returns
+    ---
+    S : str
+    '''
+    S = "".join([idx2char[i] for i in s])
     if S.find('EOS') == -1:
         return S
     else:
         return S[:S.find('EOS')]
 
 
-# compute CER
+# COMPUTE CHARACTER ERROR RATE
 def char_error_rate(p_seq1, p_seq2):
+    '''
+    params
+    ---
+    p_seq1 : str
+    p_seq2 : str
+    
+    returns
+    ---
+    cer : float
+    '''
     p_vocab = set(p_seq1 + p_seq2)
     p2c = dict(zip(p_vocab, range(len(p_vocab))))
     c_seq1 = [chr(p2c[p]) for p in p_seq1]
@@ -126,9 +153,17 @@ def char_error_rate(p_seq1, p_seq2):
                              ''.join(c_seq2)) / max(len(c_seq1),len(c_seq2))
 
 
-# подгружает изображения, меняет их до необходимого размера и нормирует."""
+# RESIZE AND NORMALIZE IMAGE
 def process_image(img):
-    # img  = np.stack([img, img, img], axis=-1)
+    '''
+    params:
+    ---
+    img : np.array
+
+    returns
+    ---
+    img : np.array
+    '''
     w, h, _ = img.shape
     new_w = hp.height
     new_h = int(h * (new_w / w))
@@ -147,16 +182,27 @@ def process_image(img):
 
     return img
 
-
-def generate_data(names, image_dir):
+# GENERATE IMAGES FROM FOLDER
+def generate_data(img_paths):
+    '''
+    params
+    ---
+    names : list of str
+        paths to images
+    
+    returns
+    ---
+    data_images : list of np.array
+        images in np.array format
+    '''
     data_images = []
-    for name in tqdm(names):
-        img = cv2.imread(name)
+    for path in tqdm(img_paths):
+        img = cv2.imread(path)
         try:
             img = process_image(img)
             data_images.append(img.astype('uint8'))
         except:
-            print(name)
+            print(path)
             img = process_image(img)            
     return data_images
 
@@ -165,8 +211,8 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-# LOAD A STATE OF MODEL FROM chk_path
-# if chk_path is empty then it initilizes state to zero
+# LOAD A STATE OF MODEL FROM CHK_PATH
+# IF CHK_PATH IS EMPTY THEN IT INITILIZES STATE TO ZERO
 def load_from_checkpoint(model,chk_path):
     valid_loss_all, train_loss_all, eval_accuracy_all, eval_loss_cer_all = [], [], [], []
     epochs = 0
@@ -207,9 +253,30 @@ def evaluate(model, criterion, iterator,logging=True):
     return epoch_loss / len(iterator)
 
 
-def test(model,image_dir,trans_dir,char2idx,idx2char,case=True):
+def test(model,image_dir,label_dir,char2idx,idx2char,case=True,punct=False):
+    '''
+    params
+    ---
+    model : pytorch model
+    image_dir : str
+        path to the folder with images
+    label_dir : str
+        path to the tsv file with labels
+    char2idx : dict
+    idx2char : dict
+    case : bool
+        if case is False then case of letter is ignored while comparing true and predicted transcript
+    punct : bool
+        if punct is False then punctution marks are ignored while comparing true and predicted transcript
+    
+    returns
+    ---
+    character_accuracy : float
+    string_accuracy : float
+
+    '''
     img2label = dict()
-    raw = open(trans_dir,'r',encoding='utf-8').read()
+    raw = open(label_dir,'r',encoding='utf-8').read()
     temp = raw.split('\n')
     for t in temp:
       x = t.split('\t')
@@ -243,10 +310,12 @@ def test(model,image_dir,trans_dir,char2idx,idx2char,case=True):
         wer += 1
         cer += char_error_rate(predicted_trans['pred'],true_trans)
 
-    return 1 - (wer/N), 1 - cer/N
+    character_accuracy = 1 - cer/N
+    string_accuracy = 1 - (wer/N)
+    return character_accuracy, string_accuracy
 
 
-# Предсказания
+# MAKE PREDICTION
 def prediction(model, test_dir,char2idx,idx2char):
     preds = {}
     os.makedirs('/output', exist_ok=True)
@@ -307,8 +376,26 @@ class ToTensor(object):
             X = X.type(self.X_type)
         return X
 
-
+# MAKE CONFUSION MATRIX ON SYMBOLS
 def confused_chars(string_true,string_predict,conf_dict):
+  '''
+  params
+  ---
+  string_true : str
+  string_predict : str
+  conf_dict : dict
+    keys : str
+        symbol
+    values : list of pairs (str,int)
+        the 1st element is symbol
+        the 2nd element is how many times it was mistaken with symbol that is correspondent key
+    e.g. ['O':[['0',15],['o',10]] means that symbol 'O' was mistaken with '0' 15 times and with 'o' 10 times
+
+  returns
+  ---
+  conf_dict : dict
+    
+  '''
   for i in range(len(string_true)):
     if string_true[i] != string_predict[i]:
       if string_true[i] not in conf_dict.keys():
@@ -325,6 +412,7 @@ def confused_chars(string_true,string_predict,conf_dict):
 
   return conf_dict
 
+# MAKE VISUALIZATION OF CONFUSION MATRIX
 def print_confuse_dict(PATH : str):
   '''
   PATH : path to pickle file with confuse matrix
@@ -337,6 +425,8 @@ def print_confuse_dict(PATH : str):
     plt.bar(xs, ys, align='center')
     plt.show()
 
+# PREPARE DATASET FROM TRAINING
+# IT CREATES MIXED DATASET: THE FIRST PART COMES FROM REAL DATA AND THE SECOND PART COMES FORM GENERATOR
 def get_mixed_data(pretrain_image_dir,pretrain_labels_dir,train_image_dir,train_labels_dir,pretrain_part=0.3):
   img2label1, chars1, all_words1 = process_data(pretrain_image_dir,pretrain_labels_dir) # PRETRAIN PART
   img2label2, chars2, all_words2 = process_data(train_image_dir,train_labels_dir) # TRAIN PART
