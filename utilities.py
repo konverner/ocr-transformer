@@ -302,6 +302,10 @@ def test(model,image_dir,label_dir,char2idx,idx2char,case=True,punct=False):
         true_trans=true_trans.lower()
         predicted_trans['pred']=predicted_trans['pred'].lower()
 
+      if not punct:
+        true_trans=true_trans.translate(str.maketrans('', '', string.punctuation))
+        predicted_trans['pred']=predicted_trans['pred'].translate(str.maketrans('', '', string.punctuation))
+
       if true_trans != predicted_trans['pred']:
         print('true:', true_trans)
         print('predicted:', predicted_trans)
