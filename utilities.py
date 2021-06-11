@@ -6,6 +6,7 @@ from collections import Counter
 from tqdm import tqdm
 from config import *
 from os.path import join
+import random
 
 def process_data(image_dir, labels_dir,ignore=[]):
     '''
@@ -82,7 +83,8 @@ def train_valid_split(img2label, val_part=0.3):
 
     N = int(len(img2label)*val_part)
     count = 0
-    for i, item in enumerate(img2label.items()):
+    items = random.shuffle(img2label.items())
+    for i, item in enumerate(items):
         if i < N:
             imgs_val.append(item[0])
             labels_val.append(item[1])
