@@ -83,7 +83,8 @@ def train_valid_split(img2label, val_part=0.3):
 
     N = int(len(img2label)*val_part)
     count = 0
-    items = random.shuffle(list(img2label.items()))
+    items = list(img2label.items())
+    random.shuffle(items)
     for i, item in enumerate(items):
         if i < N:
             imgs_val.append(item[0])
