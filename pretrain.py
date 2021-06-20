@@ -60,7 +60,7 @@ def pretrain(model,chars,epochs_per_chunk,batch_size,chk=None):
   g.upload_source(path.PATH_TO_SOURCE)
 
   X_val, y_val = prepair_validation(path.PATH_TO_SOURCE_VALID,path.PATH_TEMP_VALID)
-  X_val = generate_data(X_val,path.PATH_TEMP_VALID)
+  X_val = generate_data(X_val)
   val_dataset = TextLoader(X_val, y_val, char2idx,idx2char, eval=True)
   val_loader = torch.utils.data.DataLoader(val_dataset, shuffle=False,
                                           batch_size=1, pin_memory=False,
@@ -91,7 +91,7 @@ def pretrain(model,chars,epochs_per_chunk,batch_size,chk=None):
 
     _, _, X_train, y_train = train_valid_split(img2label,val_part=0.0)
 
-    X_train = generate_data(X_train, path.PATH_TEMP)
+    X_train = generate_data(X_train)
     train_dataset = TextLoader(X_train, y_train, char2idx ,idx2char, eval=False)
     train_loader = torch.utils.data.DataLoader(train_dataset, shuffle=True,
                                               batch_size=hp.batch_size, pin_memory=True,
@@ -106,4 +106,4 @@ def pretrain(model,chars,epochs_per_chunk,batch_size,chk=None):
     train_all(model,optimizer,criterion,scheduler,0,\
           best_eval_loss_cer,train_loader,\
           val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,\
-          eval_accuracy_all,logging=True,epoch_limit=epochs_per_chunk)
+          eval_accuracy_all,logging=True,epoch_limit=epochs_per_chunk
