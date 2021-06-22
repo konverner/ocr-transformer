@@ -106,4 +106,4 @@ def pretrain(model,chars,epochs_per_chunk,batch_size,chk=None):
     train_all(model,optimizer,criterion,scheduler,0,\
           best_eval_loss_cer,train_loader,\
           val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,\
-          eval_accuracy_all,logging=True,epoch_limit=epochs_per_chunk
+          eval_accuracy_all,logging=True,epoch_limit=epochs_per_chunk)
