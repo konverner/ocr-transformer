@@ -2,8 +2,6 @@ import cv2, os, argparse, time, random, math
 from torchvision import transforms, models
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
 from utilities import count_parameters
 
 class TransformerModel(nn.Module):
