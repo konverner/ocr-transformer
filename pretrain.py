@@ -7,6 +7,8 @@ from utilities import *
 from train import *
 from config import *
 from train import *
+from torch import nn
+from torch import optim
 import wandb
 import pickle
 
