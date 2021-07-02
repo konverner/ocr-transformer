@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+
+
 class Vignetting(object):
     def __init__(self,
                  ratio_min_dist=0.2,
@@ -14,7 +16,7 @@ class Vignetting(object):
         min_dist = np.array([h, w]) / 2 * np.random.random() * self.ratio_min_dist
 
         # create matrix of distance from the center on the two axis
-        x, y = np.meshgrid(np.linspace(-w/2, w/2, w), np.linspace(-h/2, h/2, h))
+        x, y = np.meshgrid(np.linspace(-w / 2, w / 2, w), np.linspace(-h / 2, h / 2, h))
         x, y = np.abs(x), np.abs(y)
 
         # create the vignette mask on the two axis
@@ -31,12 +33,12 @@ class Vignetting(object):
         X = X * (1 + sign * vignette)
         return X
 
+
 class LensDistortion(object):
     def __init__(self, d_coef=(0.15, 0.05, 0.1, 0.1, 0.05)):
         self.d_coef = np.array(d_coef)
 
     def __call__(self, X):
-
         # get the height and the width of the image
         h, w = X.shape[:2]
 
@@ -46,10 +48,10 @@ class LensDistortion(object):
         # set the image projective to carrtesian dimension
         K = np.array([[f, 0, w / 2],
                       [0, f, h / 2],
-                      [0, 0,     1]])
+                      [0, 0, 1]])
 
-        d_coef = self.d_coef * np.random.random(5) # value
-        d_coef = d_coef * (2 * (np.random.random(5) < 0.5) - 1) # sign
+        d_coef = self.d_coef * np.random.random(5)  # value
+        d_coef = d_coef * (2 * (np.random.random(5) < 0.5) - 1)  # sign
         # Generate new camera matrix from parameters
         M, _ = cv2.getOptimalNewCameraMatrix(K, d_coef, (w, h), 0)
 
@@ -59,6 +61,7 @@ class LensDistortion(object):
         # Remap the original image to a new image
         X = cv2.remap(X, *remap, cv2.INTER_LINEAR)
         return X
+
 
 class UniformNoise(object):
     def __init__(self, low=-50, high=50):
@@ -86,25 +89,25 @@ class Cutout(object):
         self.replacement = 1
 
     def __call__(self, X):
-        size = np.array(X.shape[:2])*0.01
+        size = np.array(X.shape[:2]) * 0.01
         mini = self.min_size_ratio * size
         maxi = self.max_size_ratio * size
-        
+
         for _ in range(self.max_crop):
             # random size
             if mini[0] == maxi[0]:
-              maxi[0] += 1
+                maxi[0] += 1
             h = np.random.randint(mini[0], maxi[0])
             if mini[1] == maxi[1]:
-              maxi[1] += 1
+                maxi[1] += 1
             w = np.random.randint(mini[1], maxi[1])
             # random place
-            shift_h = np.random.randint(0, abs(size[0] - h)+1)
-            shift_w = np.random.randint(0, abs(size[1] - w)+1)
+            shift_h = np.random.randint(0, abs(size[0] - h) + 1)
+            shift_w = np.random.randint(0, abs(size[1] - w) + 1)
             if self.channel_wise:
                 c = np.random.randint(0, X.shape[-1])
-                X[shift_h:shift_h+h, shift_w:shift_w+w, c] = self.replacement
+                X[shift_h:shift_h + h, shift_w:shift_w + w, c] = self.replacement
             else:
-                X[shift_h:shift_h+h, shift_w:shift_w+w] = self.replacement
-              
+                X[shift_h:shift_h + h, shift_w:shift_w + w] = self.replacement
+
         return X

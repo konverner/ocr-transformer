@@ -1,15 +1,19 @@
-import re, io, copy, shutil, cv2, os, editdistance ,pickle, torch
+import os
+import random
+import cv2
+import editdistance
+import pickle
+import torch
 import numpy as np
+import string
 import matplotlib.pyplot as plt
-import wandb
-from collections import Counter
 from tqdm import tqdm
 from config import *
-from os.path import join
-import random
 
-def process_data(image_dir, labels_dir,ignore=[]):
-    '''
+
+# convert images and labels into defined data structures
+def process_data(image_dir, labels_dir, ignore=[]):
+    """
     params
     ---
     image_dir : str
@@ -28,7 +32,7 @@ def process_data(image_dir, labels_dir,ignore=[]):
       all unique chars used in data
 
     all_labels : list
-    '''
+    """
 
     chars = []
     img2label = dict()
@@ -40,13 +44,13 @@ def process_data(image_dir, labels_dir,ignore=[]):
             x = t.split('\t')
             flag = False
             for item in ignore:
-              if item in x[1]:
-                flag = True
+                if item in x[1]:
+                    flag = True
             if flag == False:
-              img2label[image_dir + x[0]] = x[1]
-              for char in x[1]:
-                  if char not in chars:
-                      chars.append(char)
+                img2label[image_dir + x[0]] = x[1]
+                for char in x[1]:
+                    if char not in chars:
+                        chars.append(char)
         except:
             print('ValueError:', x)
             pass
@@ -60,29 +64,28 @@ def process_data(image_dir, labels_dir,ignore=[]):
 
 # SPLIT DATASET INTO TRAIN AND VALID PARTS
 def train_valid_split(img2label, val_part=0.3):
-    '''
+    """
     params
     ---
     img2label : dict
-        keys are paths to images, values are labels (transcripts of crops) 
+        keys are paths to images, values are labels (transcripts of crops)
 
     returns
     ---
     imgs_val : list of str
-        paths 
+        paths
     labels_val : list of str
         labels
     imgs_train : list of str
         paths
     labels_train : list of str
         labels
-    '''
+    """
 
     imgs_val, labels_val = [], []
     imgs_train, labels_train = [], []
 
-    N = int(len(img2label)*val_part)
-    count = 0
+    N = int(len(img2label) * val_part)
     items = list(img2label.items())
     random.shuffle(items)
     for i, item in enumerate(items):
@@ -94,7 +97,7 @@ def train_valid_split(img2label, val_part=0.3):
             labels_train.append(item[1])
     print('valid part:{}'.format(len(imgs_val)))
     print('train part:{}'.format(len(imgs_train)))
-    return imgs_val,labels_val,imgs_train,labels_train
+    return imgs_val, labels_val, imgs_train, labels_train
 
 
 # MAKE TEXT TO BE THE SAME LENGTH
@@ -116,8 +119,8 @@ class TextCollate():
 
 # TRANSLATE INDICIES TO TEXT
 def labels_to_text(s, idx2char):
-    '''
-    paramters
+    """
+    params
     ---
     idx2char : dict
         keys : int
@@ -128,7 +131,7 @@ def labels_to_text(s, idx2char):
     returns
     ---
     S : str
-    '''
+    """
     S = "".join([idx2char[i] for i in s])
     if S.find('EOS') == -1:
         return S
@@ -138,27 +141,27 @@ def labels_to_text(s, idx2char):
 
 # COMPUTE CHARACTER ERROR RATE
 def char_error_rate(p_seq1, p_seq2):
-    '''
+    """
     params
     ---
     p_seq1 : str
     p_seq2 : str
-    
+
     returns
     ---
     cer : float
-    '''
+    """
     p_vocab = set(p_seq1 + p_seq2)
     p2c = dict(zip(p_vocab, range(len(p_vocab))))
     c_seq1 = [chr(p2c[p]) for p in p_seq1]
     c_seq2 = [chr(p2c[p]) for p in p_seq2]
     return editdistance.eval(''.join(c_seq1),
-                             ''.join(c_seq2)) / max(len(c_seq1),len(c_seq2))
+                             ''.join(c_seq2)) / max(len(c_seq1), len(c_seq2))
 
 
 # RESIZE AND NORMALIZE IMAGE
 def process_image(img):
-    '''
+    """
     params:
     ---
     img : np.array
@@ -166,7 +169,7 @@ def process_image(img):
     returns
     ---
     img : np.array
-    '''
+    """
     w, h, _ = img.shape
     new_w = hp.height
     new_h = int(h * (new_w / w))
@@ -185,19 +188,20 @@ def process_image(img):
 
     return img
 
+
 # GENERATE IMAGES FROM FOLDER
 def generate_data(img_paths):
-    '''
+    """
     params
     ---
     names : list of str
         paths to images
-    
+
     returns
     ---
     data_images : list of np.array
         images in np.array format
-    '''
+    """
     data_images = []
     for path in tqdm(img_paths):
         img = cv2.imread(path)
@@ -206,7 +210,7 @@ def generate_data(img_paths):
             data_images.append(img.astype('uint8'))
         except:
             print(path)
-            img = process_image(img)            
+            img = process_image(img)
     return data_images
 
 
@@ -216,15 +220,27 @@ def count_parameters(model):
 
 # LOAD A STATE OF MODEL FROM CHK_PATH
 # IF CHK_PATH IS EMPTY THEN IT INITILIZES STATE TO ZERO
-def load_from_checkpoint(model,chk_path):
+def load_from_checkpoint(model, chk_path):
+    """
+    params
+    ---
+    model : nn.Module
+    chk_path : str
+        path to checkpoint
+
+    returns
+    ---
+    model : nn.Module
+    ...and all metrics from checkpoint
+    """
     valid_loss_all, train_loss_all, eval_accuracy_all, eval_loss_cer_all = [], [], [], []
     epochs = 0
     best_eval_loss_cer = float('-inf')
     if chk_path:
         if torch.cuda.is_available():
-          ckpt = torch.load(chk_path)
+            ckpt = torch.load(chk_path)
         else:
-          ckpt = torch.load(chk_path,  map_location=torch.device('cpu'))
+            ckpt = torch.load(chk_path, map_location=torch.device('cpu'))
         if 'model' in ckpt:
             model.load_state_dict(ckpt['model'])
         else:
@@ -244,7 +260,20 @@ def load_from_checkpoint(model,chk_path):
         print('weights have been loaded')
     return model, epochs, best_eval_loss_cer, valid_loss_all, train_loss_all, eval_accuracy_all, eval_loss_cer_all
 
-def evaluate(model, criterion, iterator,logging=True):
+
+def evaluate(model, criterion, iterator, logging=True):
+    """
+    params
+    ---
+    model : nn.Module
+    criterion : nn.Object
+    iterator : torch.utils.data.DataLoader
+
+    returns
+    ---
+    epoch_loss / len(iterator) : float
+        overall loss
+    """
     model.eval()
     epoch_loss = 0
     with torch.no_grad():
@@ -256,8 +285,8 @@ def evaluate(model, criterion, iterator,logging=True):
     return epoch_loss / len(iterator)
 
 
-def test(model,image_dir,label_dir,char2idx,idx2char,case=True,punct=False):
-    '''
+def test(model, image_dir, label_dir, char2idx, idx2char, case=True, punct=False):
+    """
     params
     ---
     model : pytorch model
@@ -271,59 +300,75 @@ def test(model,image_dir,label_dir,char2idx,idx2char,case=True,punct=False):
         if case is False then case of letter is ignored while comparing true and predicted transcript
     punct : bool
         if punct is False then punctution marks are ignored while comparing true and predicted transcript
-    
+
     returns
     ---
     character_accuracy : float
     string_accuracy : float
-
-    '''
+    """
     img2label = dict()
-    raw = open(label_dir,'r',encoding='utf-8').read()
+    raw = open(label_dir, 'r', encoding='utf-8').read()
     temp = raw.split('\n')
     for t in temp:
-      x = t.split('\t')
-      img2label[image_dir + x[0]] = x[1]
-    preds = prediction(model,image_dir,char2idx,idx2char)
+        x = t.split('\t')
+        img2label[image_dir + x[0]] = x[1]
+    preds = prediction(model, image_dir, char2idx, idx2char)
     N = len(preds)
 
     wer = 0
     cer = 0
 
     for item in preds.items():
-      print(item)
-      img_name = item[0]
-      true_trans = img2label[image_dir+img_name]
-      predicted_trans = item[1]
+        print(item)
+        img_name = item[0]
+        true_trans = img2label[image_dir + img_name]
+        predicted_trans = item[1]
 
-      if 'ё' in true_trans:
-        true_trans = true_trans.replace('ё','е')
-      if 'ё' in predicted_trans['pred']:
-        predicted_trans['pred'] = predicted_trans['pred'].replace('ё','е')
+        if 'ё' in true_trans:
+            true_trans = true_trans.replace('ё', 'е')
+        if 'ё' in predicted_trans['pred']:
+            predicted_trans['pred'] = predicted_trans['pred'].replace('ё', 'е')
 
-      if not case:
-        true_trans=true_trans.lower()
-        predicted_trans['pred']=predicted_trans['pred'].lower()
+        if not case:
+            true_trans = true_trans.lower()
+            predicted_trans['pred'] = predicted_trans['pred'].lower()
 
-      if not punct:
-        true_trans=true_trans.translate(str.maketrans('', '', string.punctuation))
-        predicted_trans['pred']=predicted_trans['pred'].translate(str.maketrans('', '', string.punctuation))
+        if not punct:
+            true_trans = true_trans.translate(str.maketrans('', '', string.punctuation))
+            predicted_trans['pred'] = predicted_trans['pred'].translate(str.maketrans('', '', string.punctuation))
 
-      if true_trans != predicted_trans['pred']:
-        print('true:', true_trans)
-        print('predicted:', predicted_trans)
-        print('cer:', char_error_rate(predicted_trans['pred'],true_trans))
-        print('---')
-        wer += 1
-        cer += char_error_rate(predicted_trans['pred'],true_trans)
+        if true_trans != predicted_trans['pred']:
+            print('true:', true_trans)
+            print('predicted:', predicted_trans)
+            print('cer:', char_error_rate(predicted_trans['pred'], true_trans))
+            print('---')
+            wer += 1
+            cer += char_error_rate(predicted_trans['pred'], true_trans)
 
-    character_accuracy = 1 - cer/N
-    string_accuracy = 1 - (wer/N)
+    character_accuracy = 1 - cer / N
+    string_accuracy = 1 - (wer / N)
     return character_accuracy, string_accuracy
 
 
 # MAKE PREDICTION
-def prediction(model, test_dir,char2idx,idx2char):
+def prediction(model, test_dir, char2idx, idx2char):
+    """
+    params
+    ---
+    model : nn.Module
+    test_dir : str
+        path to directory with images
+    char2idx : dict
+        map from chars to indicies
+    id2char : dict
+        map from indicies to chars
+
+    returns
+    ---
+    preds : dict
+        key : name of image in directory
+        value : dict with keys ['p_value', 'predicted_label']
+    """
     preds = {}
     os.makedirs('/output', exist_ok=True)
     model.eval()
@@ -337,7 +382,7 @@ def prediction(model, test_dir,char2idx,idx2char):
 
             src = torch.FloatTensor(img).unsqueeze(0)
             if torch.cuda.is_available():
-              src = src.cuda()
+                src = src.cuda()
 
             x = model.backbone.conv1(src)
             x = model.backbone.bn1(x)
@@ -348,7 +393,6 @@ def prediction(model, test_dir,char2idx,idx2char):
             x = model.backbone.layer2(x)
             x = model.backbone.layer3(x)
             x = model.backbone.layer4(x)
-            # x = model.backbone.avgpool(x)
 
             x = model.backbone.fc(x)
             x = x.permute(0, 3, 1, 2).flatten(2).permute(1, 0, 2)
@@ -367,7 +411,7 @@ def prediction(model, test_dir,char2idx,idx2char):
                     break
 
             pred = labels_to_text(out_indexes[1:], idx2char)
-            preds[filename] = {'pred':pred,'p_values':p_values}
+            preds[filename] = {'predicted_label': pred, 'p_values': p_values}
 
     return preds
 
@@ -383,9 +427,10 @@ class ToTensor(object):
             X = X.type(self.X_type)
         return X
 
+
 # MAKE CONFUSION MATRIX ON SYMBOLS
-def confused_chars(string_true,string_predict,conf_dict):
-  '''
+def confused_chars(string_true, string_predict, conf_dict):
+    """
   params
   ---
   string_true : str
@@ -401,46 +446,48 @@ def confused_chars(string_true,string_predict,conf_dict):
   returns
   ---
   conf_dict : dict
-    
-  '''
-  for i in range(len(string_true)):
-    if string_true[i] != string_predict[i]:
-      if string_true[i] not in conf_dict.keys():
-        conf_dict[string_true[i]] = [[string_predict[i],1]]
-      else:
-        flag = False
-        for j in range(len(conf_dict[string_true[i]])):
-          if conf_dict[string_true[i]][j][0] == string_predict[i]:
-            conf_dict[string_true[i]][j][1] += 1
-            flag=True
-            break
-        if flag == False:
-            conf_dict[string_true[i]].append([string_predict[i],1])
 
-  return conf_dict
+  """
+    for i in range(len(string_true)):
+        if string_true[i] != string_predict[i]:
+            if string_true[i] not in conf_dict.keys():
+                conf_dict[string_true[i]] = [[string_predict[i], 1]]
+            else:
+                flag = False
+                for j in range(len(conf_dict[string_true[i]])):
+                    if conf_dict[string_true[i]][j][0] == string_predict[i]:
+                        conf_dict[string_true[i]][j][1] += 1
+                        flag = True
+                        break
+                if flag == False:
+                    conf_dict[string_true[i]].append([string_predict[i], 1])
+
+    return conf_dict
+
 
 # MAKE VISUALIZATION OF CONFUSION MATRIX
-def print_confuse_dict(PATH : str):
-  '''
-  PATH : path to pickle file with confuse matrix
-  '''
-  PATH = PATH
-  d = pickle.load(open(PATH,'rb'))
-  for d_i in d.items():
-    print(d_i[0])
-    xs, ys = [*zip(*d_i[1])]
-    plt.bar(xs, ys, align='center')
-    plt.show()
+def print_confuse_dict(PATH: str):
+    """
+    PATH : path to pickle file with confuse matrix
+    """
+    PATH = PATH
+    d = pickle.load(open(PATH, 'rb'))
+    for d_i in d.items():
+        print(d_i[0])
+        xs, ys = [*zip(*d_i[1])]
+        plt.bar(xs, ys, align='center')
+        plt.show()
+
 
 # PREPARE DATASET FROM TRAINING
 # IT CREATES MIXED DATASET: THE FIRST PART COMES FROM REAL DATA AND THE SECOND PART COMES FORM GENERATOR
-def get_mixed_data(pretrain_image_dir,pretrain_labels_dir,train_image_dir,train_labels_dir,pretrain_part=0.3):
-  img2label1, chars1, all_words1 = process_data(pretrain_image_dir,pretrain_labels_dir) # PRETRAIN PART
-  img2label2, chars2, all_words2 = process_data(train_image_dir,train_labels_dir) # TRAIN PART
-  img2label1_list = list(img2label1.items())
-  N = len(img2label1_list)
-  for i in range(N):
-    j = np.random.randint(0,N)
-    item = img2label1_list[j]
-    img2label2[item[0]] = item[1]
-  return img2label2
+def get_mixed_data(pretrain_image_dir, pretrain_labels_dir, train_image_dir, train_labels_dir, pretrain_part=0.3):
+    img2label1, chars1, all_words1 = process_data(pretrain_image_dir, pretrain_labels_dir)  # PRETRAIN PART
+    img2label2, chars2, all_words2 = process_data(train_image_dir, train_labels_dir)  # TRAIN PART
+    img2label1_list = list(img2label1.items())
+    N = len(img2label1_list)
+    for i in range(N):
+        j = np.random.randint(0, N)
+        item = img2label1_list[j]
+        img2label2[item[0]] = item[1]
+    return img2label2

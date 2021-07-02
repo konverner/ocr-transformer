@@ -3,6 +3,7 @@ from utilities import *
 from train import *
 from config import *
 from model import *
+from torch import optim
 
 
 # CREATE A DIRECTORY WITH LOGS

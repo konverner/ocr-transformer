@@ -10,10 +10,10 @@ class Hparams():
         self.del_sym = []
 
         self.lr = 1e-4
-        self.batch_size = 8
+        self.batch_size = 16
         self.hidden = 512
-        self.enc_layers = 1
-        self.dec_layers = 1
+        self.enc_layers = 2
+        self.dec_layers = 2
         self.nhead = 4
         self.dropout = 0.1
         

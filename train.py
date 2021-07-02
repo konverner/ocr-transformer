@@ -1,12 +1,23 @@
-import time
-from dataset import *
-from utilities import *
 from train import *
+import wandb
 from config import *
 from model import *
-import wandb
-import pickle
-def train(model, optimizer, criterion, iterator,logging=True):
+
+
+def train(model, optimizer, criterion, iterator):
+    """
+    params
+    ---
+    model : nn.Module
+    optimizer : nn.Object
+    criterion : nn.Object
+    iterator : torch.utils.data.DataLoader
+
+    returns
+    ---
+    epoch_loss / len(iterator) : float
+        overall loss
+    """
     model.train()
     epoch_loss = 0
     counter = 0
@@ -27,7 +38,7 @@ def train(model, optimizer, criterion, iterator,logging=True):
 
     return epoch_loss / len(iterator)
 
-# Общая функция обучения и валидации
+# GENERAL FUNCTION FROM TRAINING AND VALIDATION
 def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, train_loader, val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,eval_accuracy_all,logging=True,epoch_limit=1000):
     train_loss = 0
     count_bad = 0
@@ -87,13 +98,27 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
 
 
 
-def validate(model, dataloader,show,logging,confuse_dict,epoch):
+def validate(model, dataloader,confuse_dict):
+    """
+    params
+    ---
+    model : nn.Module
+    dataloader :
+    confuse_dict : dict
+        to keep track of model's mistakes on symbols
+
+    returns
+    ---
+    cer_overall / len(dataloader) * 100 : float
+    wer_overall / len(dataloader) * 100 : float
+    confuse_dict : dict
+    """
     idx2char = dataloader.dataset.idx2char
     char2idx = dataloader.dataset.char2idx
     model.eval()
     show_count = 0
-    error_w = 0
-    error_p = 0
+    wer_overall = 0
+    cer_overall = 0
     with torch.no_grad():
         for (src, trg) in dataloader:
             img = np.moveaxis(src[0].numpy(), 0, 2)
@@ -107,8 +132,6 @@ def validate(model, dataloader,show,logging,confuse_dict,epoch):
             x = model.backbone.layer2(x)
             x = model.backbone.layer3(x)
             x = model.backbone.layer4(x)
-            # x = model.backbone.avgpool(x)
-
             x = model.backbone.fc(x)
 
             x = x.permute(0, 3, 1, 2).flatten(2).permute(1, 0, 2)
@@ -128,7 +151,7 @@ def validate(model, dataloader,show,logging,confuse_dict,epoch):
 
             out_char = labels_to_text(out_indexes[1:], idx2char)
             real_char = labels_to_text(trg[1:, 0].numpy(), idx2char)
-            error_w += int(real_char != out_char)
+            wer_overall += int(real_char != out_char)
             if out_char:
                 cer = char_error_rate(real_char, out_char)
             else:
@@ -137,17 +160,13 @@ def validate(model, dataloader,show,logging,confuse_dict,epoch):
             if len(out_char) == len(real_char):
               confuse_dict = confused_chars(real_char,out_char,confuse_dict)
 
-            error_p += cer
-            if show > show_count and out_char != real_char:
-                # plt.imshow(img)
-                # plt.show()
-                if logging:
-                    if logging:
-                      wandb.log({'Validation Character Accuracy': (1-cer)*100})
-                      wandb.log({"Validation Examples": wandb.Image(img, caption="Pred: {} Truth: {}".format(out_char, real_char))})
+            cer_overall += cer
+            if show_count%2 == 0 and out_char != real_char:
+                wandb.log({'Validation Character Accuracy': (1-cer)*100})
+                wandb.log({"Validation Examples": wandb.Image(img, caption="Pred: {} Truth: {}".format(out_char, real_char))})
                 show_count += 1
                 print('Real:', real_char)
                 print('Pred:', out_char)
                 print(cer)
     
-    return error_p / len(dataloader) * 100, error_w / len(dataloader) * 100, confuse_dict
+    return cer_overall / len(dataloader) * 100, wer_overall / len(dataloader) * 100, confuse_dict
