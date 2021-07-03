@@ -59,7 +59,7 @@ def pretrain(model, chars, epochs_per_chunk, batch_size, chk=None):
     g = handwritting_generator.Generator()
     g.upload_source(path.PATH_TO_SOURCE)
 
-    X_val, y_val = prepair_validation(path.PATH_TO_SOURCE_VALID, path.PATH_TEMP_VALID)
+    X_val, y_val = prepair_validation()
     X_val = generate_data(X_val)
     val_dataset = TextLoader(X_val, y_val, char2idx, idx2char, eval=True)
     val_loader = torch.utils.data.DataLoader(val_dataset, shuffle=False,
