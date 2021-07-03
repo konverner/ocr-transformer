@@ -326,16 +326,16 @@ def test(model, image_dir, label_dir, char2idx, idx2char, case=True, punct=False
 
         if 'ё' in true_trans:
             true_trans = true_trans.replace('ё', 'е')
-        if 'ё' in predicted_trans['pred']:
-            predicted_trans['pred'] = predicted_trans['predicted_label'].replace('ё', 'е')
+        if 'ё' in predicted_trans['predicted_label']:
+            predicted_trans['predicted_label'] = predicted_trans['predicted_label'].replace('ё', 'е')
 
         if not case:
             true_trans = true_trans.lower()
-            predicted_trans['pred'] = predicted_trans['predicted_label'].lower()
+            predicted_trans['predicted_label'] = predicted_trans['predicted_label'].lower()
 
         if not punct:
             true_trans = true_trans.translate(str.maketrans('', '', string.punctuation))
-            predicted_trans['pred'] = predicted_trans['predicted_label'].translate(str.maketrans('', '', string.punctuation))
+            predicted_trans['predicted_label'] = predicted_trans['predicted_label'].translate(str.maketrans('', '', string.punctuation))
 
         if true_trans != predicted_trans['predicted_label']:
             print('true:', true_trans)
