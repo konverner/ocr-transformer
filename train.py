@@ -52,7 +52,7 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
         print("\n-----------valid------------")
         valid_loss = evaluate(model, criterion, val_loader)
         print("-----------eval------------")
-        eval_loss_cer, eval_accuracy, confuse_dict = validate(model, val_loader, show=50,confuse_dict=confuse_dict,epoch=epoch)
+        eval_loss_cer, eval_accuracy, confuse_dict = validate(model, val_loader, show=50,confuse_dict=confuse_dict)
         scheduler.step(eval_loss_cer)
         valid_loss_all.append(valid_loss)
         train_loss_all.append(train_loss)
