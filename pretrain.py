@@ -94,7 +94,7 @@ def pretrain(model, chars, epochs_per_chunk, batch_size, chk=None):
         X_train = generate_data(X_train)
         train_dataset = TextLoader(X_train, y_train, char2idx, idx2char, eval=False)
         train_loader = torch.utils.data.DataLoader(train_dataset, shuffle=True,
-                                                   batch_size=hp.batch_size, pin_memory=True,
+                                                   batch_size=batch_size, pin_memory=True,
                                                    drop_last=True, collate_fn=TextCollate())
 
         valid_loss_all, train_loss_all, eval_accuracy_all, eval_loss_cer_all = [], [], [], []
