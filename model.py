@@ -39,8 +39,16 @@ class TransformerModel(nn.Module):
         return (inp == 0).transpose(0, 1)
 
     def forward(self, src, trg):
+        '''
+        params
+        ---
+        src : Tensor [64, 3, 64, 256] : [B,C,H,W]
+            B - batch, C - channel, H - height, W - width
+        trg : Tensor [13, 64] : [L,B]
+            L - max length of label
+        '''
         if self.trg_mask is None or self.trg_mask.size(0) != len(trg):
-            self.trg_mask = self.generate_square_subsequent_mask(len(trg)).to(trg.device)
+            self.trg_mask = self.generate_square_subsequent_mask(len(trg)).to(trg.device) 
         x = self.backbone.conv1(src)
 
         x = self.backbone.bn1(x)
@@ -49,12 +57,15 @@ class TransformerModel(nn.Module):
         x = self.backbone.layer1(x)
         x = self.backbone.layer2(x)
         x = self.backbone.layer3(x)
-        x = self.backbone.layer4(x)
-
-        x = self.backbone.fc(x)
-        x = x.permute(0, 3, 1, 2).flatten(2).permute(1, 0, 2)
+        x = self.backbone.layer4(x) # [64, 2048, 2, 8] : [B,C,H,W]
+            
+        x = self.backbone.fc(x) # [64, 256, 2, 8] : [B,C,H,W]
+        x = x.permute(0, 3, 1, 2) # [64, 8, 256, 2] : [B,W,C,H]
+        x = x.flatten(2) # [64, 8, 512] : [B,W,CH]
+        x = x.permute(1, 0, 2) # [8, 64, 512] : [W,B,CH]
+        
         src_pad_mask = self.make_len_mask(x[:, :, 0])
-        src = self.pos_encoder(x)
+        src = self.pos_encoder(x) # [8, 64, 512]
         trg_pad_mask = self.make_len_mask(trg)
         trg = self.decoder(trg)
         trg = self.pos_decoder(trg)
@@ -62,8 +73,8 @@ class TransformerModel(nn.Module):
         output = self.transformer(src, trg, src_mask=self.src_mask, tgt_mask=self.trg_mask,
                                   memory_mask=self.memory_mask,
                                   src_key_padding_mask=src_pad_mask, tgt_key_padding_mask=trg_pad_mask,
-                                  memory_key_padding_mask=src_pad_mask)
-        output = self.fc_out(output)
+                                  memory_key_padding_mask=src_pad_mask) # [13, 64, 512] : [L,B,CH]
+        output = self.fc_out(output) # [13, 64, 92] : [L,B,H]
 
         return output
 
