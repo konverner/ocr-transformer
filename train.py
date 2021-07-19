@@ -162,7 +162,7 @@ def validate(model, dataloader,confuse_dict):
               confuse_dict = confused_chars(real_char,out_char,confuse_dict)
 
             cer_overall += cer
-            if show_count%2 == 0 and out_char != real_char:
+            if out_char != real_char:
                 wandb.log({'Validation Character Accuracy': (1-cer)*100})
                 wandb.log({"Validation Examples": wandb.Image(img, caption="Pred: {} Truth: {}".format(out_char, real_char))})
                 show_count += 1
