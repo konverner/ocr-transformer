@@ -101,12 +101,12 @@ class TextLoader(torch.utils.data.Dataset):
 
     # shows some stats about dataset
     def get_info(self):
-        N = len(self.label)
+        N = len(self.labels)
         max_len = -1
-        for label in self.label:
+        for label in self.labels:
             if len(label) > max_len:
                 max_len = len(label)
-        counter = Counter(''.join(self.label))
+        counter = Counter(''.join(self.labels))
         counter = dict(sorted(counter.items(), key=lambda item: item[1]))
         print(
             'Size of dataset: {}\nMax length of expression: {}\nThe most common char: {}\n The least common char: {}'.format( \
