@@ -51,7 +51,7 @@ def pretrain(model, chars, epochs_per_chunk, batch_size, chk=None):
     idx2char = {idx: char for idx, char in enumerate(chars)}
     print('Characters:', len(chars), ':', ' '.join(chars))
 
-    optimizer = optim.AdamW(model.parameters(), lr=hp.lr)
+    optimizer = optim.SGD(model.parameters(), lr=hp.lr)
     criterion = nn.CrossEntropyLoss(ignore_index=char2idx['PAD'])
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
