@@ -39,59 +39,17 @@ def train(model, optimizer, criterion, iterator):
     return epoch_loss / len(iterator)
 
 # GENERAL FUNCTION FROM TRAINING AND VALIDATION
-def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, train_loader, val_loader,valid_loss_all,train_loss_all,eval_loss_cer_all,eval_accuracy_all,logging=True,epoch_limit=1000):
+def train_all(model,optimizer,criterion,scheduler, train_loader, val_loader,epoch_limit):
     train_loss = 0
-    count_bad = 0
     confuse_dict = dict()
-    for epoch in range(epochs, epoch_limit):
+    for epoch in range(0, epoch_limit):
         print(f'Epoch: {epoch + 1:02}')
-        start_time = time.time()
         print("-----------train------------")
         train_loss = train(model, optimizer, criterion, train_loader)
+        print("train loss :",train_loss)
         print("\n-----------valid------------")
         valid_loss = evaluate(model, criterion, val_loader)
-        print("-----------eval------------")
-        eval_loss_cer, eval_accuracy, confuse_dict = validate(model, val_loader,confuse_dict=confuse_dict)
-        scheduler.step(eval_loss_cer)
-        valid_loss_all.append(valid_loss)
-        train_loss_all.append(train_loss)
-        eval_loss_cer_all.append(eval_loss_cer)
-        eval_accuracy_all.append(eval_accuracy)
-        pickle.dump(confuse_dict, open(path.log+'confuse_dict.pickle',mode='wb'))
-        if eval_loss_cer < best_eval_loss_cer:
-            count_bad = 0
-            best_eval_loss_cer = eval_loss_cer
-            torch.save({
-                'model': model.state_dict(),
-                'epoch': epoch,
-                'best_eval_loss_cer': best_eval_loss_cer,
-                'valid_loss_all': valid_loss_all,
-                'train_loss_all': train_loss_all,
-                'eval_loss_cer_all': eval_loss_cer_all,
-                'eval_accuracy_all': eval_accuracy_all,
-            }, path.log+'resnet50_trans_%.3f.pt' % (best_eval_loss_cer))
-            print('Save best model')
-        else:
-            count_bad += 1
-            torch.save({
-                'model': model.state_dict(),
-                'epoch': epoch,
-                'best_eval_loss_cer': best_eval_loss_cer,
-                'valid_loss_all': valid_loss_all,
-                'train_loss_all': train_loss_all,
-                'eval_loss_cer_all': eval_loss_cer_all,
-                'eval_accuracy_all': eval_accuracy_all,
-            }, path.log+'resnet50_trans_last.pt')
-            print('Save model')
-
-        print(f'Time: {time.time() - start_time}s')
-        print(f'Train Loss: {train_loss:.4f}')
-        print(f'Val   Loss: {valid_loss:.4f}')
-        print(f'Eval loss CER: {eval_loss_cer:.4f}')
-        print(f'Eval accuracy: {100 - eval_accuracy:.4f}')
-        if count_bad > 19:
-            break
-
+        print("validation loss :",valid_loss)
 
 
 def validate(model, dataloader,confuse_dict):
