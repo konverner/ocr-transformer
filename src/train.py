@@ -1,6 +1,5 @@
 import time
 from train import *
-import wandb
 from config import *
 from model import *
 from utilities import *
@@ -85,10 +84,6 @@ def train_all(model,optimizer,criterion,scheduler,epochs,best_eval_loss_cer, tra
             }, path.log+'resnet50_trans_last.pt')
             print('Save model')
 
-        if logging:
-            wandb.log({'Train loss WER': train_loss, "Validation loss WER": valid_loss, 'Validation Word Accuracy': 100 - eval_accuracy,
-                   'Validation loss CER': eval_loss_cer,'Learning Rate':scheduler._last_lr[0]})
-
         print(f'Time: {time.time() - start_time}s')
         print(f'Train Loss: {train_loss:.4f}')
         print(f'Val   Loss: {valid_loss:.4f}')
@@ -163,8 +158,6 @@ def validate(model, dataloader,confuse_dict):
 
             cer_overall += cer
             if out_char != real_char:
-                wandb.log({'Validation Character Accuracy': (1-cer)*100})
-                wandb.log({"Validation Examples": wandb.Image(img, caption="Pred: {} Truth: {}".format(out_char, real_char))})
                 show_count += 1
                 print('Real:', real_char)
                 print('Pred:', out_char)
