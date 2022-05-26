@@ -2,14 +2,13 @@ import math
 import torch
 import torch.nn as nn
 from torchvision import models
-from utilities import count_parameters
+from utils import PositionalEncoding, count_parameters
 
 
 class TransformerModel(nn.Module):
-    def __init__(self, bb_name, outtoken, hidden, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=False):
-        # здесь загружаем сверточную модель, например, resnet50
+    def __init__(self, outtoken, hidden, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=True):
         super(TransformerModel, self).__init__()
-        self.backbone = models.__getattribute__(bb_name)(pretrained=pretrained)
+        self.backbone = models.resnet50(pretrained=pretrained)
         self.backbone.fc = nn.Conv2d(2048, int(hidden/2), 1)
 
         self.pos_encoder = PositionalEncoding(hidden, dropout)
@@ -24,9 +23,9 @@ class TransformerModel(nn.Module):
         self.trg_mask = None
         self.memory_mask = None
         
-        print('backbone: {}'.format(bb_name))
-        print('layers: {}'.format(enc_layers))
-        print('heads: {}'.format(nhead))
+        print('transformer layers: {}'.format(enc_layers))
+        print('transformer heads: {}'.format(nhead))
+        print('backbone: resnet50')
         print('dropout: {}'.format(dropout))
         print(f'{count_parameters(self):,} trainable parameters')
 
