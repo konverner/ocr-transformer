@@ -1,21 +1,21 @@
 import os
 import random
+import string
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+import torch
 import cv2
 import editdistance
-import pickle
-import torch
-import numpy as np
-import string
-import matplotlib.pyplot as plt
 from tqdm import tqdm
-from config import *
+from config import WIDTH, HEIGHT
 
 
-class PositionalEncoding(nn.Module):
+class PositionalEncoding(torch.nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding, self).__init__()
-        self.dropout = nn.Dropout(p=dropout)
-        self.scale = nn.Parameter(torch.ones(1))
+        self.dropout = torch.nn.Dropout(p=dropout)
+        self.scale = torch.nn.Parameter(torch.ones(1))
 
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
@@ -80,44 +80,6 @@ def process_data(image_dir, labels_dir, ignore=[]):
     chars = ['PAD', 'SOS'] + chars + ['EOS']
 
     return img2label, chars, all_labels
-
-
-# SPLIT DATASET INTO TRAIN AND VALID PARTS
-def train_valid_split(img2label, val_part=0.3):
-    """
-    params
-    ---
-    img2label : dict
-        keys are paths to images, values are labels (transcripts of crops)
-
-    returns
-    ---
-    imgs_val : list of str
-        paths
-    labels_val : list of str
-        labels
-    imgs_train : list of str
-        paths
-    labels_train : list of str
-        labels
-    """
-
-    imgs_val, labels_val = [], []
-    imgs_train, labels_train = [], []
-
-    N = int(len(img2label) * val_part)
-    items = list(img2label.items())
-    random.shuffle(items)
-    for i, item in enumerate(items):
-        if i < N:
-            imgs_val.append(item[0])
-            labels_val.append(item[1])
-        else:
-            imgs_train.append(item[0])
-            labels_train.append(item[1])
-    print('valid part:{}'.format(len(imgs_val)))
-    print('train part:{}'.format(len(imgs_train)))
-    return imgs_val, labels_val, imgs_train, labels_train
 
 
 # MAKE TEXT TO BE THE SAME LENGTH
@@ -191,14 +153,14 @@ def process_image(img):
     img : np.array
     """
     w, h, _ = img.shape
-    new_w = hp.height
+    new_w = HEIGHT
     new_h = int(h * (new_w / w))
     img = cv2.resize(img, (new_h, new_w))
     w, h, _ = img.shape
 
     img = img.astype('float32')
 
-    new_h = hp.width
+    new_h = WIDTH
     if h < new_h:
         add_zeros = np.full((w, new_h - h, 3), 255)
         img = np.concatenate((img, add_zeros), axis=1)
@@ -238,71 +200,28 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-# LOAD A STATE OF MODEL FROM CHK_PATH
-# IF CHK_PATH IS EMPTY THEN IT INITILIZES STATE TO ZERO
-def load_from_checkpoint(model, chk_path):
-    """
-    params
-    ---
-    model : nn.Module
-    chk_path : str
-        path to checkpoint
-
-    returns
-    ---
-    model : nn.Module
-    ...and all metrics from checkpoint
-    """
-    valid_loss_all, train_loss_all, eval_accuracy_all, eval_loss_cer_all = [], [], [], []
-    epochs = 0
-    best_eval_loss_cer = float('-inf')
-    if chk_path:
-        if torch.cuda.is_available():
-            ckpt = torch.load(chk_path)
-        else:
-            ckpt = torch.load(chk_path, map_location=torch.device('cpu'))
-        if 'model' in ckpt:
-            model.load_state_dict(ckpt['model'])
-        else:
-            model.load_state_dict(ckpt)
-        if 'epochs' in ckpt:
-            epochs = int(ckpt['epoch'])
-        if 'valid_loss_all' in ckpt:
-            valid_loss_all = ckpt['valid_loss_all']
-        if 'best_eval_loss_cer' in ckpt:
-            best_eval_loss_cer = ckpt['best_eval_loss_cer']
-        if 'train_loss_all' in ckpt:
-            train_loss_all = ckpt['train_loss_all']
-        if 'eval_accuracy_all' in ckpt:
-            eval_accuracy_all = ckpt['eval_accuracy_all']
-        if 'eval_loss_cer_all' in ckpt:
-            eval_loss_cer_all = ckpt['eval_loss_cer_all']
-        print('weights have been loaded')
-    return model, epochs, best_eval_loss_cer, valid_loss_all, train_loss_all, eval_accuracy_all, eval_loss_cer_all
-
-
-def evaluate(model, criterion, iterator, logging=True):
+def evaluate(model, criterion, loader, logging=True):
     """
     params
     ---
     model : nn.Module
     criterion : nn.Object
-    iterator : torch.utils.data.DataLoader
+    loader : torch.utils.data.DataLoader
 
     returns
     ---
-    epoch_loss / len(iterator) : float
+    epoch_loss / len(loader) : float
         overall loss
     """
     model.eval()
     epoch_loss = 0
     with torch.no_grad():
-        for (src, trg) in tqdm(iterator):
+        for (src, trg) in tqdm(loader):
             src, trg = src.cuda(), trg.cuda()
             output = model(src, trg[:-1, :])
             loss = criterion(output.view(-1, output.shape[-1]), torch.reshape(trg[1:, :], (-1,)))
             epoch_loss += loss.item()
-    return epoch_loss / len(iterator)
+    return epoch_loss / len(loader)
 
 
 def test(model, image_dir, label_dir, char2idx, idx2char, case=True, punct=False):
@@ -497,17 +416,3 @@ def print_confuse_dict(PATH: str):
         xs, ys = [*zip(*d_i[1])]
         plt.bar(xs, ys, align='center')
         plt.show()
-
-
-# PREPARE DATASET FROM TRAINING
-# IT CREATES MIXED DATASET: THE FIRST PART COMES FROM REAL DATA AND THE SECOND PART COMES FORM GENERATOR
-def get_mixed_data(pretrain_image_dir, pretrain_labels_dir, train_image_dir, train_labels_dir, pretrain_part=0.3):
-    img2label1, chars1, all_words1 = process_data(pretrain_image_dir, pretrain_labels_dir)  # PRETRAIN PART
-    img2label2, chars2, all_words2 = process_data(train_image_dir, train_labels_dir)  # TRAIN PART
-    img2label1_list = list(img2label1.items())
-    N = len(img2label1_list)
-    for i in range(N):
-        j = np.random.randint(0, N)
-        item = img2label1_list[j]
-        img2label2[item[0]] = item[1]
-    return img2label2
