@@ -1,30 +1,30 @@
 import time
-from train import *
-from config import *
-from model import *
-from utilities import *
+import numpy as np
+import torch
+from config import DEVICE
+from utils import labels_to_text, evaluate, char_error_rate
 
-def train(model, optimizer, criterion, iterator):
+def train(model, optimizer, criterion, train_loader):
     """
     params
     ---
     model : nn.Module
     optimizer : nn.Object
     criterion : nn.Object
-    iterator : torch.utils.data.DataLoader
+    train_loader : torch.utils.data.DataLoader
 
     returns
     ---
-    epoch_loss / len(iterator) : float
+    epoch_loss / len(train_loader) : float
         overall loss
     """
     model.train()
     epoch_loss = 0
     counter = 0
-    for src, trg in iterator:
+    for src, trg in train_loader:
         counter += 1
         if counter % 500 == 0:
-            print('[', counter, '/', len(iterator), ']')
+            print('[', counter, '/', len(train_loader), ']')
         if torch.cuda.is_available():
           src, trg = src.cuda(), trg.cuda()
 
@@ -36,12 +36,11 @@ def train(model, optimizer, criterion, iterator):
         optimizer.step()
         epoch_loss += loss.item()
 
-    return epoch_loss / len(iterator)
+    return epoch_loss / len(train_loader)
 
 # GENERAL FUNCTION FROM TRAINING AND VALIDATION
-def train_all(model,optimizer,criterion,scheduler, train_loader, val_loader,epoch_limit):
+def train_all(model,optimizer,criterion, train_loader, val_loader, epoch_limit):
     train_loss = 0
-    confuse_dict = dict()
     for epoch in range(0, epoch_limit):
         print(f'Epoch: {epoch + 1:02}')
         print("-----------train------------")
@@ -95,7 +94,7 @@ def validate(model, dataloader,confuse_dict):
             out_indexes = [char2idx['SOS'], ]
 
             for i in range(100):
-                trg_tensor = torch.LongTensor(out_indexes).unsqueeze(1).to(device)
+                trg_tensor = torch.LongTensor(out_indexes).unsqueeze(1).to(DEVICE)
 
                 output = model.fc_out(model.transformer.decoder(model.pos_decoder(model.decoder(trg_tensor)), memory))
                 out_token = output.argmax(2)[-1].item()
@@ -106,19 +105,12 @@ def validate(model, dataloader,confuse_dict):
             out_char = labels_to_text(out_indexes[1:], idx2char)
             real_char = labels_to_text(trg[1:, 0].numpy(), idx2char)
             wer_overall += int(real_char != out_char)
+
             if out_char:
                 cer = char_error_rate(real_char, out_char)
             else:
                 cer = 1
-            
-            if len(out_char) == len(real_char):
-              confuse_dict = confused_chars(real_char,out_char,confuse_dict)
 
             cer_overall += cer
-            if out_char != real_char:
-                show_count += 1
-                print('Real:', real_char)
-                print('Pred:', out_char)
-                print(cer)
     
     return cer_overall / len(dataloader) * 100, wer_overall / len(dataloader) * 100, confuse_dict
