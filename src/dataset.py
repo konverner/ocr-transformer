@@ -1,8 +1,9 @@
+import torch
 from collections import Counter
 import Augmentor
 from torchvision import transforms
 import augmentations
-from utilities import *
+from utils import *
 
 ### AUGMENTATIONS ###
 vignet = augmentations.Vignetting()
@@ -40,11 +41,9 @@ class TextLoader(torch.utils.data.Dataset):
         self.transform = transforms.Compose([
             transforms.ToPILImage(),
             p.torch_transform(),  # random distortion and shear
-            # transforms.Resize((int(hp.height *1.05), int(hp.width *1.05))),
-            # transforms.RandomCrop((hp.height, hp.width)),
-            # transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
+            transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
             transforms.RandomRotation(degrees=(-9, 9), fill=255),
-            # transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
+            transforms.RandomAffine(10 ,None ,[0.6 ,1] ,3 ,fillcolor=255),
             transforms.transforms.GaussianBlur(3, sigma=(0.1, 1.9)),
             transforms.ToTensor()
         ])
