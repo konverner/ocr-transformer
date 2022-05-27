@@ -1,8 +1,9 @@
 import time
+from tqdm import tqdm
 import numpy as np
 import torch
 from config import DEVICE
-from utils import labels_to_text, evaluate, char_error_rate
+from utils import labels_to_text, char_error_rate, evaluate
 
 def train(model, optimizer, criterion, train_loader):
     """
@@ -20,14 +21,8 @@ def train(model, optimizer, criterion, train_loader):
     """
     model.train()
     epoch_loss = 0
-    counter = 0
-    for src, trg in train_loader:
-        counter += 1
-        if counter % 500 == 0:
-            print('[', counter, '/', len(train_loader), ']')
-        if torch.cuda.is_available():
-          src, trg = src.cuda(), trg.cuda()
-
+    for src, trg in tqdm(train_loader):
+        src, trg = src.to(DEVICE), trg.to(DEVICE)
         optimizer.zero_grad()
         output = model(src, trg[:-1, :])
 
@@ -38,42 +33,45 @@ def train(model, optimizer, criterion, train_loader):
 
     return epoch_loss / len(train_loader)
 
+
 # GENERAL FUNCTION FROM TRAINING AND VALIDATION
-def train_all(model,optimizer,criterion, train_loader, val_loader, epoch_limit):
-    train_loss = 0
+def fit(model, optimizer, criterion, train_loader, val_loader, epoch_limit):
+    loss = {'train': [], 'valid': []}
     for epoch in range(0, epoch_limit):
-        print(f'Epoch: {epoch + 1:02}')
-        print("-----------train------------")
-        train_loss = train(model, optimizer, criterion, train_loader)
-        print("train loss :",train_loss)
-        print("\n-----------valid------------")
-        valid_loss = evaluate(model, criterion, val_loader)
-        print("validation loss :",valid_loss)
+      print(f'Epoch: {epoch + 1:02}')
+      print("-----------train------------")
+      #train_loss = train(model, optimizer, criterion, train_loader)
+      #print("train loss :",train_loss)
+      print("\n-----------valid------------")
+      valid_loss = evaluate(model, criterion, val_loader)
+      print("validation loss :",valid_loss)
+
+      #loss['train'].append(train_loss)
 
 
-def validate(model, dataloader,confuse_dict):
+def validate(model, loader,confuse_dict):
     """
     params
     ---
     model : nn.Module
-    dataloader :
+    loader :
     confuse_dict : dict
         to keep track of model's mistakes on symbols
 
     returns
     ---
-    cer_overall / len(dataloader) * 100 : float
-    wer_overall / len(dataloader) * 100 : float
+    cer_overall / len(loader) * 100 : float
+    wer_overall / len(loader) * 100 : float
     confuse_dict : dict
     """
-    idx2char = dataloader.dataset.idx2char
-    char2idx = dataloader.dataset.char2idx
+    idx2char = loader.dataset.idx2char
+    char2idx = loader.dataset.char2idx
     model.eval()
     show_count = 0
     wer_overall = 0
     cer_overall = 0
     with torch.no_grad():
-        for (src, trg) in dataloader:
+        for (src, trg) in loader:
             img = np.moveaxis(src[0].numpy(), 0, 2)
             if torch.cuda.is_available():
               src = src.cuda()
@@ -113,4 +111,4 @@ def validate(model, dataloader,confuse_dict):
 
             cer_overall += cer
     
-    return cer_overall / len(dataloader) * 100, wer_overall / len(dataloader) * 100, confuse_dict
+    return cer_overall / len(loader) * 100, wer_overall / len(loader) * 100, confuse_dict
