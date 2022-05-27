@@ -4,6 +4,7 @@ import Augmentor
 from torchvision import transforms
 import augmentations
 from utils import *
+from config import LENGTH
 
 ### AUGMENTATIONS ###
 vignet = augmentations.Vignetting()
@@ -126,3 +127,19 @@ class TextLoader(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.labels)
+
+
+# MAKE TEXT TO BE THE SAME LENGTH
+class TextCollate():
+    def __call__(self, batch):
+        x_padded = []
+        y_padded = torch.LongTensor(LENGTH, len(batch))
+        y_padded.zero_()
+
+        for i in range(len(batch)):
+            x_padded.append(batch[i][0].unsqueeze(0))
+            y = batch[i][1]
+            y_padded[:y.size(0), i] = y
+
+        x_padded = torch.cat(x_padded)
+        return x_padded, y_padded
