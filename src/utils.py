@@ -8,7 +8,8 @@ import torch
 import cv2
 import editdistance
 from tqdm import tqdm
-from config import WIDTH, HEIGHT
+from config import WIDTH, HEIGHT, DEVICE, BATCH_SIZE
+from const import ALPHABET
 
 
 class PositionalEncoding(torch.nn.Module):
@@ -80,23 +81,6 @@ def process_data(image_dir, labels_dir, ignore=[]):
     chars = ['PAD', 'SOS'] + chars + ['EOS']
 
     return img2label, chars, all_labels
-
-
-# MAKE TEXT TO BE THE SAME LENGTH
-class TextCollate():
-    def __call__(self, batch):
-        x_padded = []
-        max_y_len = max([i[1].size(0) for i in batch])
-        y_padded = torch.LongTensor(max_y_len, len(batch))
-        y_padded.zero_()
-
-        for i in range(len(batch)):
-            x_padded.append(batch[i][0].unsqueeze(0))
-            y = batch[i][1]
-            y_padded[:y.size(0), i] = y
-
-        x_padded = torch.cat(x_padded)
-        return x_padded, y_padded
 
 
 # TRANSLATE INDICIES TO TEXT
@@ -214,14 +198,27 @@ def evaluate(model, criterion, loader, logging=True):
         overall loss
     """
     model.eval()
-    epoch_loss = 0
+    metrics = {'loss': 0, 'wer': 0, 'cer': 0}
     with torch.no_grad():
         for (src, trg) in tqdm(loader):
             src, trg = src.cuda(), trg.cuda()
-            output = model(src, trg[:-1, :])
-            loss = criterion(output.view(-1, output.shape[-1]), torch.reshape(trg[1:, :], (-1,)))
-            epoch_loss += loss.item()
-    return epoch_loss / len(loader)
+            logits = model(src, trg[:-1, :])
+            loss = criterion(logits.view(-1, logits.shape[-1]), torch.reshape(trg[1:, :], (-1,)))
+            indexes = logits.argmax(2).T.cpu().numpy()
+
+            true_phrases = [labels_to_text(trg.T[i][1:], ALPHABET) for i in range(BATCH_SIZE)]
+            pred_phrases = [labels_to_text(indexes[i], ALPHABET) for i in range(BATCH_SIZE)]
+
+            metrics['loss'] += loss.item()
+            metrics['cer'] += sum([char_error_rate(true_phrases[i], pred_phrases[i]) \
+                        for i in range(BATCH_SIZE)])/BATCH_SIZE
+            metrics['wer'] += sum([int(true_phrases[i] != pred_phrases[i]) \
+                        for i in range(BATCH_SIZE)])/BATCH_SIZE
+
+    for key in metrics.keys():
+      metrics[key] /= len(loader)
+
+    return metrics
 
 
 def test(model, image_dir, label_dir, char2idx, idx2char, case=True, punct=False):
@@ -319,7 +316,7 @@ def prediction(model, test_dir, char2idx, idx2char):
             img = img / img.max()
             img = np.transpose(img, (2, 0, 1))
 
-            src = torch.FloatTensor(img).unsqueeze(0)
+            src = torch.FloatTensor(img).unsqueeze(0).to(DEVICE)
             if torch.cuda.is_available():
                 src = src.cuda()
 
@@ -336,11 +333,11 @@ def prediction(model, test_dir, char2idx, idx2char):
             x = model.backbone.fc(x)
             x = x.permute(0, 3, 1, 2).flatten(2).permute(1, 0, 2)
             memory = model.transformer.encoder(model.pos_encoder(x))
-
+            print('memory=', memory.shape)
             p_values = 1
             out_indexes = [char2idx['SOS'], ]
             for i in range(100):
-                trg_tensor = torch.LongTensor(out_indexes).unsqueeze(1).to(device)
+                trg_tensor = torch.LongTensor(out_indexes).unsqueeze(1).to(DEVICE)
                 output = model.fc_out(model.transformer.decoder(model.pos_decoder(model.decoder(trg_tensor)), memory))
 
                 out_token = output.argmax(2)[-1].item()
