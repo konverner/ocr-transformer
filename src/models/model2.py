@@ -12,6 +12,7 @@ class TransformerModel(nn.Module):
 
         self.enc_layers = enc_layers
         self.dec_layers = dec_layers
+        self.backbone_name = 'conv(64)->conv(64)->conv(128)->conv(256)->conv(256)->conv(512)->conv(512)'
 
         self.conv0 = Conv2d(1, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
         self.conv1 = Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
