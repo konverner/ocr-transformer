@@ -258,7 +258,7 @@ def prediction(model, test_dir, char2idx, idx2char):
 
             out_indexes = model.predict(src)
             pred = labels_to_text(out_indexes[1:], idx2char)
-            preds[filename] = {'predicted_label': pred, 'filename': filename}
+            preds[filename] = pred
 
     return preds
 
