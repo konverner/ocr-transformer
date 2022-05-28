@@ -5,6 +5,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+from torchvision import transforms
 import cv2
 import editdistance
 from tqdm import tqdm
@@ -221,71 +222,6 @@ def evaluate(model, criterion, loader, logging=True):
     return metrics
 
 
-def test(model, image_dir, label_dir, char2idx, idx2char, case=True, punct=False):
-    """
-    params
-    ---
-    model : pytorch model
-    image_dir : str
-        path to the folder with images
-    label_dir : str
-        path to the tsv file with labels
-    char2idx : dict
-    idx2char : dict
-    case : bool
-        if case is False then case of letter is ignored while comparing true and predicted transcript
-    punct : bool
-        if punct is False then punctution marks are ignored while comparing true and predicted transcript
-
-    returns
-    ---
-    character_accuracy : float
-    string_accuracy : float
-    """
-    img2label = dict()
-    raw = open(label_dir, 'r', encoding='utf-8').read()
-    temp = raw.split('\n')
-    for t in temp:
-        x = t.split('\t')
-        img2label[image_dir + x[0]] = x[1]
-    preds = prediction(model, image_dir, char2idx, idx2char)
-    N = len(preds)
-
-    wer = 0
-    cer = 0
-
-    for item in preds.items():
-        print(item)
-        img_name = item[0]
-        true_trans = img2label[image_dir + img_name]
-        predicted_trans = item[1]
-
-        if 'ё' in true_trans:
-            true_trans = true_trans.replace('ё', 'е')
-        if 'ё' in predicted_trans['predicted_label']:
-            predicted_trans['predicted_label'] = predicted_trans['predicted_label'].replace('ё', 'е')
-
-        if not case:
-            true_trans = true_trans.lower()
-            predicted_trans['predicted_label'] = predicted_trans['predicted_label'].lower()
-
-        if not punct:
-            true_trans = true_trans.translate(str.maketrans('', '', string.punctuation))
-            predicted_trans['predicted_label'] = predicted_trans['predicted_label'].translate(str.maketrans('', '', string.punctuation))
-
-        if true_trans != predicted_trans['predicted_label']:
-            print('true:', true_trans)
-            print('predicted:', predicted_trans)
-            print('cer:', char_error_rate(predicted_trans['predicted_label'], true_trans))
-            print('---')
-            wer += 1
-            cer += char_error_rate(predicted_trans['predicted_label'], true_trans)
-
-    character_accuracy = 1 - cer / N
-    string_accuracy = 1 - (wer / N)
-    return character_accuracy, string_accuracy
-
-
 # MAKE PREDICTION
 def prediction(model, test_dir, char2idx, idx2char):
     """
@@ -317,37 +253,12 @@ def prediction(model, test_dir, char2idx, idx2char):
             img = np.transpose(img, (2, 0, 1))
 
             src = torch.FloatTensor(img).unsqueeze(0).to(DEVICE)
-            if torch.cuda.is_available():
-                src = src.cuda()
+            src = transforms.Grayscale(1)(src)
+            src = src.to(DEVICE)
 
-            x = model.backbone.conv1(src)
-            x = model.backbone.bn1(x)
-            x = model.backbone.relu(x)
-            x = model.backbone.maxpool(x)
-
-            x = model.backbone.layer1(x)
-            x = model.backbone.layer2(x)
-            x = model.backbone.layer3(x)
-            x = model.backbone.layer4(x)
-
-            x = model.backbone.fc(x)
-            x = x.permute(0, 3, 1, 2).flatten(2).permute(1, 0, 2)
-            memory = model.transformer.encoder(model.pos_encoder(x))
-            print('memory=', memory.shape)
-            p_values = 1
-            out_indexes = [char2idx['SOS'], ]
-            for i in range(100):
-                trg_tensor = torch.LongTensor(out_indexes).unsqueeze(1).to(DEVICE)
-                output = model.fc_out(model.transformer.decoder(model.pos_decoder(model.decoder(trg_tensor)), memory))
-
-                out_token = output.argmax(2)[-1].item()
-                p_values = p_values * torch.sigmoid(output[-1, 0, out_token]).item()
-                out_indexes.append(out_token)
-                if out_token == char2idx['EOS']:
-                    break
-
+            out_indexes = model.predict(src)
             pred = labels_to_text(out_indexes[1:], idx2char)
-            preds[filename] = {'predicted_label': pred, 'p_values': p_values}
+            preds[filename] = {'predicted_label': pred, 'filename': filename}
 
     return preds
 
@@ -420,7 +331,7 @@ def log_config(model):
     print('transformer heads: {}'.format(model.transformer.nhead))
     print('hidden dim: {}'.format(model.decoder.embedding_dim))
     print('num classes: {}'.format(model.decoder.num_embeddings))
-    print('backbone: resnet50')
+    print('backbone: {}'.format(model.backbone_name))
     print('dropout: {}'.format(model.pos_encoder.dropout.p))
     print(f'{count_parameters(model):,} trainable parameters')
 
