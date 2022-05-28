@@ -14,6 +14,7 @@ class TransformerModel(nn.Module):
         self.enc_layers = enc_layers
         self.dec_layers = dec_layers
         
+        self.backbone_name = 'resnet50'
         self.backbone = models.resnet50(pretrained=pretrained)
         self.backbone.fc = nn.Conv2d(2048, int(hidden/2), 1)
 
