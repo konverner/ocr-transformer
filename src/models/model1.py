@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 from torchvision import models
-from utils import PositionalEncoding, count_parameters
+from utils import PositionalEncoding, count_parameters, log_config
 from config import DEVICE
 from const import ALPHABET
 
@@ -10,6 +10,10 @@ from const import ALPHABET
 class TransformerModel(nn.Module):
     def __init__(self, outtoken, hidden, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=True):
         super(TransformerModel, self).__init__()
+
+        self.enc_layers = enc_layers
+        self.dec_layers = dec_layers
+        
         self.backbone = models.resnet50(pretrained=pretrained)
         self.backbone.fc = nn.Conv2d(2048, int(hidden/2), 1)
 
@@ -24,12 +28,8 @@ class TransformerModel(nn.Module):
         self.src_mask = None
         self.trg_mask = None
         self.memory_mask = None
-        
-        print('transformer layers: {}'.format(enc_layers))
-        print('transformer heads: {}'.format(nhead))
-        print('backbone: resnet50')
-        print('dropout: {}'.format(dropout))
-        print(f'{count_parameters(self):,} trainable parameters')
+
+        log_config(self)
 
     def generate_square_subsequent_mask(self, sz):
         mask = torch.triu(torch.ones(sz, sz, device=DEVICE), 1)
