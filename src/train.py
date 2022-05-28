@@ -1,9 +1,8 @@
-import time
-from tqdm import tqdm
+from time import time
 import numpy as np
 import torch
 from config import DEVICE
-from utils import labels_to_text, char_error_rate, evaluate
+from utils import labels_to_text, char_error_rate, evaluate, log_metrics
 
 def train(model, optimizer, criterion, train_loader):
     """
@@ -21,7 +20,7 @@ def train(model, optimizer, criterion, train_loader):
     """
     model.train()
     epoch_loss = 0
-    for src, trg in tqdm(train_loader):
+    for src, trg in train_loader:
         src, trg = src.to(DEVICE), trg.to(DEVICE)
         optimizer.zero_grad()
         output = model(src, trg[:-1, :])
@@ -36,18 +35,18 @@ def train(model, optimizer, criterion, train_loader):
 
 # GENERAL FUNCTION FROM TRAINING AND VALIDATION
 def fit(model, optimizer, criterion, train_loader, val_loader, epoch_limit):
-    loss = {'train': [], 'valid': []}
+    metrics = []
     for epoch in range(0, epoch_limit):
-      print(f'Epoch: {epoch + 1:02}')
-      print("-----------train------------")
-      #train_loss = train(model, optimizer, criterion, train_loader)
-      #print("train loss :",train_loss)
-      print("\n-----------valid------------")
-      valid_loss = evaluate(model, criterion, val_loader)
-      print("validation loss :",valid_loss)
-
-      #loss['train'].append(train_loss)
-
+      epoch_metrics = {}
+      start_time = time()
+      train_loss = train(model, optimizer, criterion, train_loader)
+      end_time = time()
+      epoch_metrics = evaluate(model, criterion, val_loader)
+      epoch_metrics['train_loss'] = train_loss
+      epoch_metrics['epoch'] = epoch
+      epoch_metrics['time'] = end_time - start_time
+      metrics.append(epoch_metrics)
+      log_metrics(epoch_metrics)
 
 def validate(model, loader,confuse_dict):
     """
