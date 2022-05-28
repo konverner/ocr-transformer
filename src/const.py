@@ -1,8 +1,11 @@
-DIR = '' # work directory
+DIR = '/content/' # work directory
 PATH_TEST_DIR = DIR+'test/'
 PATH_TEST_LABELS =  DIR+'test.tsv'
 PATH_TRAIN_DIR =  DIR+'train/'
 PATH_TRAIN_LABELS =  DIR+'train.tsv'
+PREDICT_PATH = "/content/test/"
+CHECKPOINT_PATH = DIR
+WEIGHTS_PATH = None
 
 ALPHABET = ['PAD', 'SOS', ' ', '!', '"', '%', '(', ')', ',', '-', '.', '/',\
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '?',\
