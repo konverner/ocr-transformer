@@ -13,6 +13,7 @@ LENGTH = 32
 # IMAGE SIZE
 WIDTH = 256
 HEIGHT = 64
+CHANNELS = 1
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 RANDOM_SEED = 42
