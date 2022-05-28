@@ -200,7 +200,7 @@ def evaluate(model, criterion, loader, logging=True):
     model.eval()
     metrics = {'loss': 0, 'wer': 0, 'cer': 0}
     with torch.no_grad():
-        for (src, trg) in tqdm(loader):
+        for (src, trg) in loader:
             src, trg = src.cuda(), trg.cuda()
             logits = model(src, trg[:-1, :])
             loss = criterion(logits.view(-1, logits.shape[-1]), torch.reshape(trg[1:, :], (-1,)))
@@ -413,3 +413,22 @@ def print_confuse_dict(PATH: str):
         xs, ys = [*zip(*d_i[1])]
         plt.bar(xs, ys, align='center')
         plt.show()
+
+
+def log_config(model):
+    print('transformer layers: {}'.format(model.enc_layers))
+    print('transformer heads: {}'.format(model.transformer.nhead))
+    print('hidden dim: {}'.format(model.decoder.embedding_dim))
+    print('num classes: {}'.format(model.decoder.num_embeddings))
+    print('backbone: resnet50')
+    print('dropout: {}'.format(model.pos_encoder.dropout.p))
+    print(f'{count_parameters(model):,} trainable parameters')
+
+
+def log_metrics(metrics):
+    if metrics['epoch'] == 0:
+      print('Epoch   Train_loss   Valid_loss   CER   WER    Time')
+      print('-----   -----------  ----------   ---   ---    ----')
+    print('{:02d}       {:.2f}         {:.2f}       {:.2f}   {:.2f}   {:.2f}'.format(\
+        metrics['epoch'], metrics['train_loss'], metrics['loss'], metrics['cer'], \
+        metrics['wer'], metrics['time']))
