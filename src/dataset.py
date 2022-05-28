@@ -4,7 +4,7 @@ import Augmentor
 from torchvision import transforms
 import augmentations
 from utils import *
-from config import LENGTH
+from config import LENGTH, CHANNELS
 
 ### AUGMENTATIONS ###
 vignet = augmentations.Vignetting()
@@ -41,6 +41,7 @@ class TextLoader(torch.utils.data.Dataset):
         self.eval = eval
         self.transform = transforms.Compose([
             transforms.ToPILImage(),
+            transforms.Grayscale(CHANNELS),
             p.torch_transform(),  # random distortion and shear
             transforms.ColorJitter(contrast=(0.5,1),saturation=(0.5,1)),
             transforms.RandomRotation(degrees=(-9, 9), fill=255),
