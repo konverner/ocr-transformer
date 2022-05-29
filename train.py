@@ -1,0 +1,58 @@
+import sys
+import torch
+import random
+import pathlib
+sys.path.append(str(pathlib.Path(__file__).parent.resolve())+'/src')
+
+from const import ALPHABET, PATH_TEST_DIR, PATH_TEST_LABELS,\
+                  PATH_TRAIN_DIR, PATH_TRAIN_LABELS, CHECKPOINT_PATH
+from config import MODEL, BATCH_SIZE, N_HEADS, \
+                    ENC_LAYERS, DEC_LAYERS, LR, \
+                    DEVICE, RANDOM_SEED, HIDDEN, \
+                    DROPOUT
+from utils import generate_data, process_data 
+from dataset import TextCollate, TextLoader
+from fit import fit
+
+random.seed(RANDOM_SEED)
+torch.manual_seed(RANDOM_SEED)
+torch.cuda.manual_seed(RANDOM_SEED)
+
+char2idx = {char: idx for idx, char in enumerate(ALPHABET)}
+idx2char = {idx: char for idx, char in enumerate(ALPHABET)}
+
+print("loading dataset ...")
+img2label, _, all_words = process_data(PATH_TRAIN_DIR, PATH_TRAIN_LABELS) 
+img_names, labels = list(img2label.keys()), list(img2label.values())
+X_train = generate_data(img_names)
+y_train = labels
+
+train_dataset = TextLoader(X_train, y_train, char2idx ,idx2char, eval=False)
+train_loader = torch.utils.data.DataLoader(train_dataset, shuffle=True,
+                                           batch_size=BATCH_SIZE, pin_memory=True,
+                                           drop_last=True, collate_fn=TextCollate())
+
+
+img2label, _, all_words = process_data(PATH_TEST_DIR, PATH_TEST_LABELS) 
+img_names, labels = list(img2label.keys()), list(img2label.values())
+X_test = generate_data(img_names)
+y_test = labels
+
+test_dataset = TextLoader(X_test, y_test, char2idx ,idx2char, eval=False)
+test_loader = torch.utils.data.DataLoader(test_dataset, shuffle=True,
+                                           batch_size=BATCH_SIZE, pin_memory=True,
+                                           drop_last=True, collate_fn=TextCollate())
+
+if MODEL == 'model1':
+  from models import model2
+  model = model2.TransformerModel(len(ALPHABET), hidden=HIDDEN, enc_layers=ENC_LAYERS, dec_layers=DEC_LAYERS,   
+                          nhead=N_HEADS, dropout=DROPOUT).to(DEVICE)
+if MODEL == 'model2':
+  from models import model2
+  model = model2.TransformerModel(len(ALPHABET), hidden=HIDDEN, enc_layers=ENC_LAYERS, dec_layers=DEC_LAYERS,   
+                          nhead=N_HEADS, dropout=DROPOUT).to(DEVICE)
+
+optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+criterion = torch.nn.CrossEntropyLoss(ignore_index=char2idx['PAD'])
+print(f'checkpoints are saved in {CHECKPOINT_PATH}')
+fit(model, optimizer, criterion, test_loader, test_loader, epoch_limit=160)
