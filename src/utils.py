@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 import torch
 from torchvision import transforms
 import cv2
+from PIL import Image
 import editdistance
 from tqdm import tqdm
 from config import WIDTH, HEIGHT, DEVICE, BATCH_SIZE
 from const import ALPHABET
-
 
 class PositionalEncoding(torch.nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
@@ -85,25 +85,10 @@ def process_data(image_dir, labels_dir, ignore=[]):
 
 
 # TRANSLATE INDICIES TO TEXT
-def labels_to_text(s, idx2char):
-    """
-    params
-    ---
-    idx2char : dict
-        keys : int
-            indicies of characters
-        values : str
-            characters
-
-    returns
-    ---
-    S : str
-    """
-    S = "".join([idx2char[i] for i in s])
-    if S.find('EOS') == -1:
-        return S
-    else:
-        return S[:S.find('EOS')]
+def indicies_to_text(indexes, idx2char):
+    text = "".join([idx2char[i] for i in indexes])
+    text = text.replace('EOS', '').replace('PAD', '').replace('SOS', '')
+    return text
 
 
 # COMPUTE CHARACTER ERROR RATE
@@ -171,7 +156,7 @@ def generate_data(img_paths):
     """
     data_images = []
     for path in tqdm(img_paths):
-        img = cv2.imread(path)
+        img = np.asarray(Image.open(path).convert('RGB'))
         try:
             img = process_image(img)
             data_images.append(img.astype('uint8'))
@@ -185,7 +170,7 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def evaluate(model, criterion, loader, logging=True):
+def evaluate(model, criterion, loader):
     """
     params
     ---
@@ -200,6 +185,7 @@ def evaluate(model, criterion, loader, logging=True):
     """
     model.eval()
     metrics = {'loss': 0, 'wer': 0, 'cer': 0}
+    result = {'true': [], 'predicted': [], 'wer': []}
     with torch.no_grad():
         for (src, trg) in loader:
             src, trg = src.cuda(), trg.cuda()
@@ -207,8 +193,8 @@ def evaluate(model, criterion, loader, logging=True):
             loss = criterion(logits.view(-1, logits.shape[-1]), torch.reshape(trg[1:, :], (-1,)))
             indexes = logits.argmax(2).T.cpu().numpy()
 
-            true_phrases = [labels_to_text(trg.T[i][1:], ALPHABET) for i in range(BATCH_SIZE)]
-            pred_phrases = [labels_to_text(indexes[i], ALPHABET) for i in range(BATCH_SIZE)]
+            true_phrases = [indicies_to_text(trg.T[i][1:], ALPHABET) for i in range(BATCH_SIZE)]
+            pred_phrases = [indicies_to_text(indexes[i], ALPHABET) for i in range(BATCH_SIZE)]
 
             metrics['loss'] += loss.item()
             metrics['cer'] += sum([char_error_rate(true_phrases[i], pred_phrases[i]) \
@@ -216,10 +202,15 @@ def evaluate(model, criterion, loader, logging=True):
             metrics['wer'] += sum([int(true_phrases[i] != pred_phrases[i]) \
                         for i in range(BATCH_SIZE)])/BATCH_SIZE
 
+            for i in range(len(true_phrases)):
+              result['true'].append(true_phrases[i])
+              result['predicted'].append(pred_phrases[i])
+              result['wer'].append(char_error_rate(true_phrases[i], pred_phrases[i]))
+
     for key in metrics.keys():
       metrics[key] /= len(loader)
 
-    return metrics
+    return metrics, result
 
 
 # MAKE PREDICTION
@@ -247,7 +238,7 @@ def prediction(model, test_dir, char2idx, idx2char):
 
     with torch.no_grad():
         for filename in os.listdir(test_dir):
-            img = cv2.imread(test_dir + filename)
+            img = np.asarray(Image.open(test_dir + filename).convert('RGB'))
             img = process_image(img).astype('uint8')
             img = img / img.max()
             img = np.transpose(img, (2, 0, 1))
@@ -257,7 +248,7 @@ def prediction(model, test_dir, char2idx, idx2char):
             src = src.to(DEVICE)
 
             out_indexes = model.predict(src)
-            pred = labels_to_text(out_indexes[1:], idx2char)
+            pred = indicies_to_text(out_indexes[0][1:-2], idx2char)
             preds[filename] = pred
 
     return preds
