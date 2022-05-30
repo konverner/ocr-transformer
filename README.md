@@ -2,7 +2,15 @@
 
 This is a transformer approach to OCR task. The architecture is composed of three parts: a feature extractor, encoder and decoder. The feature extractor transforms the input image into vectors of features; then temporal encoding is used to encode the order of vectors in a sequence. After that, the encoder transforms a sequence of vectors using the self-attention mechanism to get a context for the second sequence, which is target strings. The target strings also get temporal encoding and passed to the decoder that takes the context as well.
 
-![](https://github.com/constantin50/ocr-transformer/blob/master/arch.png)
+The feature extractor is a crucial part of ocr architecture. I present two models with two different extractors -- the heavy and light ones. The heavy is composed of ResNet50 layers whereas the light model uses 6 simple convolutions.
+
+Fig. 1 -- Diagram of model1
+
+![model1](https://github.com/conwerner/ocr-transformer/blob/master/diagram_model1.png)
+
+Fig. 2 -- Diagram of model2
+
+![model2](https://github.com/conwerner/ocr-transformer/blob/master/diagram_model2.png)
 
 
 # Example: Recognition of Cyrillic Words
