@@ -6,12 +6,17 @@ The feature extractor is a crucial part of ocr architecture. I present two model
 
 Fig. 1 -- Diagram of model1
 
-![model1](https://github.com/conwerner/ocr-transformer/blob/master/diagram_model1.png)
+<div>
+<img src="https://github.com/conwerner/ocr-transformer/blob/master/diagram_model1.png" width="500"/>
+</div>
+
 
 Fig. 2 -- Diagram of model2
 
-![model2](https://github.com/conwerner/ocr-transformer/blob/master/diagram_model2.png)
 
+<div>
+<img src="https://github.com/conwerner/ocr-transformer/blob/master/diagram_model2.png" width="500"/>
+</div>
 
 # Example: Recognition of Cyrillic Words
 
