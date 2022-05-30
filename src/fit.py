@@ -2,7 +2,7 @@ from time import time
 import numpy as np
 import torch
 from config import DEVICE
-from utils import labels_to_text, char_error_rate, evaluate, log_metrics
+from utils import indicies_to_text, char_error_rate, evaluate, log_metrics
 
 def train(model, optimizer, criterion, train_loader):
     """
@@ -34,9 +34,9 @@ def train(model, optimizer, criterion, train_loader):
 
 
 # GENERAL FUNCTION FROM TRAINING AND VALIDATION
-def fit(model, optimizer, criterion, train_loader, val_loader, epoch_limit):
+def fit(model, optimizer, criterion, train_loader, val_loader, start_epoch=0, end_epoch=24):
     metrics = []
-    for epoch in range(0, epoch_limit):
+    for epoch in range(start_epoch, end_epoch):
       epoch_metrics = {}
       start_time = time()
       train_loss = train(model, optimizer, criterion, train_loader)
@@ -47,3 +47,4 @@ def fit(model, optimizer, criterion, train_loader, val_loader, epoch_limit):
       epoch_metrics['time'] = end_time - start_time
       metrics.append(epoch_metrics)
       log_metrics(epoch_metrics)
+    return metrics
