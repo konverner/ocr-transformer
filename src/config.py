@@ -1,6 +1,7 @@
 import torch
 import random
 
+MODEL = 'model2'
 LR = 1e-4
 BATCH_SIZE = 16
 HIDDEN = 512
