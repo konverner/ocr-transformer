@@ -1,0 +1,7 @@
+torch
+torchvision
+opencv-python
+Pillow
+open-cv
+Augmentor
+editdistance
