@@ -4,8 +4,8 @@ import random
 import pathlib
 sys.path.append(str(pathlib.Path(__file__).parent.resolve())+'/src')
 
-from const import DIR, ALPHABET, PATH_TEST_DIR, PATH_TEST_LABELS, WEIGHTS_PATH, PREDICT_PATH
-from config import MODEL, N_HEADS, ENC_LAYERS, DEC_LAYERS, DEVICE, HIDDEN
+from const import DIR, PATH_TEST_DIR, PATH_TEST_LABELS, WEIGHTS_PATH, PREDICT_PATH
+from config import MODEL, ALPHABET, N_HEADS, ENC_LAYERS, DEC_LAYERS, DEVICE, HIDDEN
 
 from utils import generate_data, process_data 
 from dataset import TextCollate, TextLoader
