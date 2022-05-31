@@ -57,5 +57,5 @@ optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 criterion = torch.nn.CrossEntropyLoss(ignore_index=char2idx['PAD'])
 print(f'checkpoints are saved in {CHECKPOINT_PATH} every {CHECKPOINT_FREQ} epochs')
 for epoch in range(1, N_EPOCHS, CHECKPOINT_FREQ):
-  fit(model, optimizer, criterion, test_loader, test_loader, epoch, epoch+CHECKPOINT_FREQ)
+  fit(model, optimizer, criterion, train_loader, test_loader, epoch, epoch+CHECKPOINT_FREQ)
   torch.save(model.state_dict(), CHECKPOINT_PATH+'checkpoint_{}.pt'.format(epoch+CHECKPOINT_FREQ))
