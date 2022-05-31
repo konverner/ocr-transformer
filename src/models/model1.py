@@ -3,9 +3,7 @@ import torch
 import torch.nn as nn
 from torchvision import models
 from utils import PositionalEncoding, count_parameters, log_config
-from config import DEVICE
-from const import ALPHABET
-
+from config import DEVICE, ALPHABET
 
 class TransformerModel(nn.Module):
     def __init__(self, outtoken, hidden, enc_layers=1, dec_layers=1, nhead=1, dropout=0.1, pretrained=True):
