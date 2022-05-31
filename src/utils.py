@@ -327,10 +327,17 @@ def log_config(model):
     print(f'{count_parameters(model):,} trainable parameters')
 
 
-def log_metrics(metrics):
-    if metrics['epoch'] == 0:
+def log_metrics(metrics, path_to_logs=None):
+    if path_to_logs != None:
+      f = open(path_to_logs, 'a')
+    if metrics['epoch'] == 1:
+      if path_to_logs != None:
+        f.write('Epoch\tTrain_loss\tValid_loss\tCER\tWER\tTime\n')
       print('Epoch   Train_loss   Valid_loss   CER   WER    Time')
       print('-----   -----------  ----------   ---   ---    ----')
     print('{:02d}       {:.2f}         {:.2f}       {:.2f}   {:.2f}   {:.2f}'.format(\
         metrics['epoch'], metrics['train_loss'], metrics['loss'], metrics['cer'], \
         metrics['wer'], metrics['time']))
+    if path_to_logs != None:
+      f.write(str(metrics['epoch'])+'\t'+str(metrics['train_loss'])+'\t'+str(metrics['loss'])+'\t'+str(metrics['cer'])+'\t'+str(metrics['wer'])+'\t'+str(metrics['time'])+'\n')
+      f.close()
