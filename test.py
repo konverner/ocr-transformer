@@ -4,9 +4,9 @@ import random
 import pathlib
 sys.path.append(str(pathlib.Path(__file__).parent.resolve())+'/src')
 
-from const import ALPHABET, PATH_TEST_DIR, PATH_TEST_LABELS, WEIGHTS_PATH, PATH_TEST_RESULTS
+from const import PATH_TEST_DIR, PATH_TEST_LABELS, WEIGHTS_PATH, PATH_TEST_RESULTS
 from config import MODEL, N_HEADS, ENC_LAYERS, DEC_LAYERS,\
-                  DEVICE, HIDDEN, BATCH_SIZE
+                  DEVICE, HIDDEN, BATCH_SIZE, ALPHABET, TEST_TRANSFORMS
 
 from utils import generate_data, process_data 
 from dataset import TextCollate, TextLoader
@@ -20,7 +20,7 @@ img_names, labels = list(img2label.keys()), list(img2label.values())
 X_test = generate_data(img_names)
 y_test = labels
 
-test_dataset = TextLoader(X_test, y_test, char2idx ,idx2char, eval=False)
+test_dataset = TextLoader(X_test, y_test, TEST_TRANSFORMS, char2idx ,idx2char)
 test_loader = torch.utils.data.DataLoader(test_dataset, shuffle=True,
                                            batch_size=BATCH_SIZE, pin_memory=True,
                                            drop_last=True, collate_fn=TextCollate())
