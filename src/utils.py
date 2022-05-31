@@ -10,8 +10,7 @@ import cv2
 from PIL import Image
 import editdistance
 from tqdm import tqdm
-from config import WIDTH, HEIGHT, DEVICE, BATCH_SIZE
-from const import ALPHABET
+from config import ALPHABET, WIDTH, HEIGHT, DEVICE, BATCH_SIZE
 
 class PositionalEncoding(torch.nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
