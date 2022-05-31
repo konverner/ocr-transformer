@@ -7,6 +7,7 @@ PREDICT_PATH = "/content/test/"
 CHECKPOINT_PATH = DIR
 WEIGHTS_PATH = "/content/checkpoint_9.pt"
 PATH_TEST_RESULTS = DIR+'/test_result.tsv'
+TRAIN_LOG = DIR+'/train_log.tsv'
 
 ALPHABET = ['PAD', 'SOS', ' ', '!', '"', '%', '(', ')', ',', '-', '.', '/',\
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '?',\
