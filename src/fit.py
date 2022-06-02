@@ -35,7 +35,7 @@ def train(model, optimizer, criterion, train_loader):
 
 
 # GENERAL FUNCTION FROM TRAINING AND VALIDATION
-def fit(model, optimizer, criterion, train_loader, val_loader, start_epoch=0, end_epoch=24):
+def fit(model, optimizer, scheduler, criterion, train_loader, val_loader, start_epoch=0, end_epoch=24):
     metrics = []
     for epoch in range(start_epoch, end_epoch):
       epoch_metrics = {}
@@ -46,6 +46,9 @@ def fit(model, optimizer, criterion, train_loader, val_loader, start_epoch=0, en
       epoch_metrics['train_loss'] = train_loss
       epoch_metrics['epoch'] = epoch
       epoch_metrics['time'] = end_time - start_time
+      epoch_metrics['lr'] = round(optimizer.param_groups[0]["lr"], 5)
       metrics.append(epoch_metrics)
       log_metrics(epoch_metrics, TRAIN_LOG)
+    if scheduler != None:
+      scheduler.step()
     return metrics
