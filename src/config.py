@@ -30,6 +30,10 @@ N_EPOCHS = 128
 CHECKPOINT_FREQ = 10 # save checkpoint every 10 epochs
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 RANDOM_SEED = 42
+SCHUDULER_NAME = "CosineAnnealingLR" # or "ExponentialLR"
+T_max = 300 # for CosineAnnealingLR
+GAMMA = 0.9 # for ExponentialLR
+OPTIMIZER_NAME = 'Adam' # or "SGD"
 
 # IMAGE SIZE
 WIDTH = 256
