@@ -10,7 +10,8 @@ from config import MODEL, BATCH_SIZE, N_HEADS, \
                     ENC_LAYERS, DEC_LAYERS, LR, \
                     DEVICE, RANDOM_SEED, HIDDEN, \
                     DROPOUT, CHECKPOINT_FREQ, N_EPOCHS, \
-                    ALPHABET, TRAIN_TRANSFORMS, TEST_TRANSFORMS
+                    ALPHABET, TRAIN_TRANSFORMS, TEST_TRANSFORMS, \
+                    OPTIMIZER_NAME, SCHUDULER_NAME, T_max, GAMMA
 from utils import generate_data, process_data 
 from dataset import TextCollate, TextLoader
 from fit import fit
@@ -53,9 +54,17 @@ if MODEL == 'model2':
   model = model2.TransformerModel(len(ALPHABET), hidden=HIDDEN, enc_layers=ENC_LAYERS, dec_layers=DEC_LAYERS,   
                           nhead=N_HEADS, dropout=DROPOUT).to(DEVICE)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 criterion = torch.nn.CrossEntropyLoss(ignore_index=char2idx['PAD'])
+optimizer = torch.optim.__getattribute__(OPTIMIZER_NAME)(model.parameters(), lr=LR)
+
+if SCHUDULER_NAME == "CosineAnnealingLR":
+  scheduler = torch.optim.lr_scheduler.__getattribute__(SCHUDULER_NAME)(optimizer, T_max = T_max)
+elif SCHUDULER_NAME == "ExponentialLR":
+  scheduler = torch.optim.lr_scheduler.__getattribute__(SCHUDULER_NAME)(optimizer, gamma = GAMMA)
+else:
+  scheduler = None
+
 print(f'checkpoints are saved in {CHECKPOINT_PATH} every {CHECKPOINT_FREQ} epochs')
 for epoch in range(1, N_EPOCHS, CHECKPOINT_FREQ):
-  fit(model, optimizer, criterion, train_loader, test_loader, epoch, epoch+CHECKPOINT_FREQ)
+  fit(model, optimizer, scheduler, criterion, train_loader, test_loader, epoch, epoch+CHECKPOINT_FREQ)
   torch.save(model.state_dict(), CHECKPOINT_PATH+'checkpoint_{}.pt'.format(epoch+CHECKPOINT_FREQ))
