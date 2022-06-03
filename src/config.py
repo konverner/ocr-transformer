@@ -23,17 +23,16 @@ ALPHABET = ['PAD', 'SOS', ' ', '!', '"', '%', '(', ')', ',', '-', '.', '/',\
             
 ### TRAINING ###
 
-LR = 1e-4
 BATCH_SIZE = 32
 DROPOUT = 0.1
 N_EPOCHS = 128
 CHECKPOINT_FREQ = 10 # save checkpoint every 10 epochs
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 RANDOM_SEED = 42
-SCHUDULER_NAME = "CosineAnnealingLR" # or "ExponentialLR"
-T_max = 300 # for CosineAnnealingLR
-GAMMA = 0.9 # for ExponentialLR
+SCHUDULER_ON = True # "ReduceLROnPlateau"
+PATIENCE = 5 # for ReduceLROnPlateau
 OPTIMIZER_NAME = 'Adam' # or "SGD"
+LR = 4e-4
 
 # IMAGE SIZE
 WIDTH = 256
