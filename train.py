@@ -11,7 +11,7 @@ from config import MODEL, BATCH_SIZE, N_HEADS, \
                     DEVICE, RANDOM_SEED, HIDDEN, \
                     DROPOUT, CHECKPOINT_FREQ, N_EPOCHS, \
                     ALPHABET, TRAIN_TRANSFORMS, TEST_TRANSFORMS, \
-                    OPTIMIZER_NAME, SCHUDULER_NAME, T_max, GAMMA
+                    OPTIMIZER_NAME, SCHUDULER_ON, PATIENCE
 from utils import generate_data, process_data 
 from dataset import TextCollate, TextLoader
 from fit import fit
@@ -57,10 +57,8 @@ if MODEL == 'model2':
 criterion = torch.nn.CrossEntropyLoss(ignore_index=char2idx['PAD'])
 optimizer = torch.optim.__getattribute__(OPTIMIZER_NAME)(model.parameters(), lr=LR)
 
-if SCHUDULER_NAME == "CosineAnnealingLR":
-  scheduler = torch.optim.lr_scheduler.__getattribute__(SCHUDULER_NAME)(optimizer, T_max = T_max)
-elif SCHUDULER_NAME == "ExponentialLR":
-  scheduler = torch.optim.lr_scheduler.__getattribute__(SCHUDULER_NAME)(optimizer, gamma = GAMMA)
+if SCHUDULER_ON:
+  scheduler =torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
 else:
   scheduler = None
 
