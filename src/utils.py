@@ -334,7 +334,7 @@ def log_metrics(metrics, path_to_logs=None):
         f.write('Epoch\tTrain_loss\tValid_loss\tCER\tWER\tTime\n')
       print('Epoch   Train_loss   Valid_loss   CER   WER    Time    LR')
       print('-----   -----------  ----------   ---   ---    ----    ---')
-    print('{:02d}       {:.2f}         {:.2f}       {:.2f}   {:.2f}   {:.2f}   {:.5f}'.format(\
+    print('{:02d}       {:.2f}         {:.2f}       {:.2f}   {:.2f}   {:.2f}   {:.7f}'.format(\
         metrics['epoch'], metrics['train_loss'], metrics['loss'], metrics['cer'], \
         metrics['wer'], metrics['time'], metrics['lr']))
     if path_to_logs != None:
