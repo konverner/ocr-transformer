@@ -46,7 +46,7 @@ def fit(model, optimizer, scheduler, criterion, train_loader, val_loader, start_
       epoch_metrics['train_loss'] = train_loss
       epoch_metrics['epoch'] = epoch
       epoch_metrics['time'] = end_time - start_time
-      epoch_metrics['lr'] = round(optimizer.param_groups[0]["lr"], 5)
+      epoch_metrics['lr'] = optimizer.param_groups[0]["lr"]
       metrics.append(epoch_metrics)
       log_metrics(epoch_metrics, TRAIN_LOG)
       if scheduler != None:
