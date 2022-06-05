@@ -26,8 +26,8 @@ test_loader = torch.utils.data.DataLoader(test_dataset, shuffle=True,
                                            drop_last=True, collate_fn=TextCollate())
 
 if MODEL == 'model1':
-  from models import model2
-  model = model2.TransformerModel(len(ALPHABET), hidden=HIDDEN, enc_layers=ENC_LAYERS, dec_layers=DEC_LAYERS,   
+  from models import model1
+  model = model1.TransformerModel(len(ALPHABET), hidden=HIDDEN, enc_layers=ENC_LAYERS, dec_layers=DEC_LAYERS,   
                           nhead=N_HEADS, dropout=0.0).to(DEVICE)
 if MODEL == 'model2':
   from models import model2
