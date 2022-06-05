@@ -58,7 +58,7 @@ criterion = torch.nn.CrossEntropyLoss(ignore_index=char2idx['PAD'])
 optimizer = torch.optim.__getattribute__(OPTIMIZER_NAME)(model.parameters(), lr=LR)
 
 if SCHUDULER_ON:
-  scheduler =torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
+  scheduler =torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=PATIENCE)
 else:
   scheduler = None
 
