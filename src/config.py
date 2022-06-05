@@ -6,7 +6,7 @@ import random
 
 ### MODEL ### 
 
-MODEL = 'model2'
+MODEL = 'model1'
 HIDDEN = 512
 ENC_LAYERS = 2
 DEC_LAYERS = 2
@@ -37,7 +37,7 @@ LR = 4e-4
 # IMAGE SIZE
 WIDTH = 256
 HEIGHT = 64
-CHANNELS = 1
+CHANNELS = 3 # 3 channels if model1
 
 
 ### AUGMENTATIONS ###
