@@ -4,8 +4,8 @@ import random
 import pathlib
 sys.path.append(str(pathlib.Path(__file__).parent.resolve())+'/src')
 
-from const import PATH_TEST_DIR, PATH_TEST_LABELS,\
-                  PATH_TRAIN_DIR, PATH_TRAIN_LABELS, CHECKPOINT_PATH
+from const import PATH_TEST_DIR, PATH_TEST_LABELS, FROM_CHECKPOINT_PATH, \
+                  PATH_TRAIN_DIR, PATH_TRAIN_LABELS, CHECKPOINTS_PATH
 from config import MODEL, BATCH_SIZE, N_HEADS, \
                     ENC_LAYERS, DEC_LAYERS, LR, \
                     DEVICE, RANDOM_SEED, HIDDEN, \
@@ -54,6 +54,10 @@ if MODEL == 'model2':
   model = model2.TransformerModel(len(ALPHABET), hidden=HIDDEN, enc_layers=ENC_LAYERS, dec_layers=DEC_LAYERS,   
                           nhead=N_HEADS, dropout=DROPOUT).to(DEVICE)
 
+if FROM_CHECKPOINT_PATH != None:
+  model.load_state_dict(torch.load(FROM_CHECKPOINT_PATH))
+  print(f'loading from checkpoint {FROM_CHECKPOINT_PATH}')
+
 criterion = torch.nn.CrossEntropyLoss(ignore_index=char2idx['PAD'])
 optimizer = torch.optim.__getattribute__(OPTIMIZER_NAME)(model.parameters(), lr=LR)
 
@@ -62,7 +66,7 @@ if SCHUDULER_ON:
 else:
   scheduler = None
 
-print(f'checkpoints are saved in {CHECKPOINT_PATH} every {CHECKPOINT_FREQ} epochs')
+print(f'checkpoints are saved in {CHECKPOINTS_PATH} every {CHECKPOINT_FREQ} epochs')
 for epoch in range(1, N_EPOCHS, CHECKPOINT_FREQ):
   fit(model, optimizer, scheduler, criterion, train_loader, test_loader, epoch, epoch+CHECKPOINT_FREQ)
-  torch.save(model.state_dict(), CHECKPOINT_PATH+'checkpoint_{}.pt'.format(epoch+CHECKPOINT_FREQ))
+  torch.save(model.state_dict(), CHECKPOINTS_PATH+'checkpoint_{}.pt'.format(epoch+CHECKPOINT_FREQ))
