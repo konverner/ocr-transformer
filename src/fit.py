@@ -50,5 +50,5 @@ def fit(model, optimizer, scheduler, criterion, train_loader, val_loader, start_
       metrics.append(epoch_metrics)
       log_metrics(epoch_metrics, TRAIN_LOG)
       if scheduler != None:
-        scheduler.step(epoch_metrics['loss'])
+        scheduler.step(epoch_metrics['train_loss'])
     return metrics
