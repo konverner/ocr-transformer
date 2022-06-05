@@ -10,7 +10,7 @@ import cv2
 from PIL import Image
 import editdistance
 from tqdm import tqdm
-from config import ALPHABET, WIDTH, HEIGHT, DEVICE, BATCH_SIZE
+from config import ALPHABET, CHANNELS, WIDTH, HEIGHT, DEVICE, BATCH_SIZE
 
 class PositionalEncoding(torch.nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
@@ -237,15 +237,17 @@ def prediction(model, test_dir, char2idx, idx2char):
 
     with torch.no_grad():
         for filename in os.listdir(test_dir):
-            img = np.asarray(Image.open(test_dir + filename).convert('RGB'))
-            img = process_image(img).astype('uint8')
+            img = Image.open(test_dir + filename)
+            if CHANNELS == 1:
+              img = img.convert('L')
+            else:
+              img = img.convert('RGB')
+
+            img = process_image(np.asarray(img)).astype('uint8')
             img = img / img.max()
             img = np.transpose(img, (2, 0, 1))
 
             src = torch.FloatTensor(img).unsqueeze(0).to(DEVICE)
-            src = transforms.Grayscale(1)(src)
-            src = src.to(DEVICE)
-
             out_indexes = model.predict(src)
             pred = indicies_to_text(out_indexes[0][1:-2], idx2char)
             preds[filename] = pred
