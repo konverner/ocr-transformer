@@ -187,7 +187,7 @@ def evaluate(model, criterion, loader):
     result = {'true': [], 'predicted': [], 'wer': []}
     with torch.no_grad():
         for (src, trg) in loader:
-            src, trg = src.cuda(), trg.cuda()
+            src, trg = src.to(DEVICE), trg.to(DEVICE)
             logits = model(src, trg[:-1, :])
             loss = criterion(logits.view(-1, logits.shape[-1]), torch.reshape(trg[1:, :], (-1,)))
             indexes = logits.argmax(2).T.cpu().numpy()
