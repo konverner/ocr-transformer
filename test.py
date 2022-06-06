@@ -43,7 +43,7 @@ metrics, result = evaluate(model, criterion, test_loader)
 
 if PATH_TEST_RESULTS != None:
   f = open(PATH_TEST_RESULTS, 'w')
-  f.write("true\tpredicted\twer\n")
+  f.write("true\tpredicted\tcer\n")
   for i in range(len(result['true'])): 
     f.write(result['true'][i]+\
             '\t'+result['predicted'][i]+\
