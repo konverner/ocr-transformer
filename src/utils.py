@@ -184,17 +184,17 @@ def evaluate(model, criterion, loader):
     """
     model.eval()
     metrics = {'loss': 0, 'wer': 0, 'cer': 0}
-    result = {'true': [], 'predicted': [], 'cer': []}
+    result = {'true': [], 'predicted': [], 'wer': []}
     with torch.no_grad():
         for (src, trg) in loader:
             src, trg = src.to(DEVICE), trg.to(DEVICE)
             logits = model(src, trg[:-1, :])
             loss = criterion(logits.view(-1, logits.shape[-1]), torch.reshape(trg[1:, :], (-1,)))
-            indexes = logits.argmax(2).T.cpu().numpy()
-
+            out_indexes = model.predict(src)
+            
             true_phrases = [indicies_to_text(trg.T[i][1:], ALPHABET) for i in range(BATCH_SIZE)]
-            pred_phrases = [indicies_to_text(indexes[i], ALPHABET) for i in range(BATCH_SIZE)]
-
+            pred_phrases = [indicies_to_text(out_indexes[i], ALPHABET) for i in range(BATCH_SIZE)]
+            
             metrics['loss'] += loss.item()
             metrics['cer'] += sum([char_error_rate(true_phrases[i], pred_phrases[i]) \
                         for i in range(BATCH_SIZE)])/BATCH_SIZE
@@ -204,7 +204,7 @@ def evaluate(model, criterion, loader):
             for i in range(len(true_phrases)):
               result['true'].append(true_phrases[i])
               result['predicted'].append(pred_phrases[i])
-              result['cer'].append(char_error_rate(true_phrases[i], pred_phrases[i]))
+              result['wer'].append(char_error_rate(true_phrases[i], pred_phrases[i]))
 
     for key in metrics.keys():
       metrics[key] /= len(loader)
