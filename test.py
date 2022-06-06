@@ -47,6 +47,6 @@ if PATH_TEST_RESULTS != None:
   for i in range(len(result['true'])): 
     f.write(result['true'][i]+\
             '\t'+result['predicted'][i]+\
-            '\t'+str(result['wer'][i])+'\n')
+            '\t'+str(result['cer'][i])+'\n')
 
 print(metrics)
