@@ -169,7 +169,7 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def evaluate(model, criterion, loader):
+def evaluate(model, criterion, loader, case=True, punct=True):
     """
     params
     ---
@@ -194,6 +194,15 @@ def evaluate(model, criterion, loader):
             
             true_phrases = [indicies_to_text(trg.T[i][1:], ALPHABET) for i in range(BATCH_SIZE)]
             pred_phrases = [indicies_to_text(out_indexes[i], ALPHABET) for i in range(BATCH_SIZE)]
+            
+            if not case:
+                true_phrases = [phrase.lower() for phrase in true_phrases]
+                pred_phrases = [phrase.lower() for phrase in pred_phrases]
+            if not punct:
+                true_phrases = [phrase.translate(str.maketrans('', '', string.punctuation))\
+                                for phrase in true_phrases]
+                pred_phrases = [phrase.translate(str.maketrans('', '', string.punctuation))\
+                                for phrase in pred_phrases]
             
             metrics['loss'] += loss.item()
             metrics['cer'] += sum([char_error_rate(true_phrases[i], pred_phrases[i]) \
