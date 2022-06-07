@@ -26,23 +26,25 @@ Prior to training on real data, the model is pretrained on synthetic data. Crops
 
 # Training
 
-The training is done on the Cyrillic Handwriting Dataset, which was collected by us. It is composed of 33122 segments of handwriting texts (crops) in Russian and splited into train, and test sets with a split of 95%, 5%, respectively.
+The training is done on the [Cyrillic Handwriting Dataset](https://www.kaggle.com/datasets/constantinwerner/cyrillic-handwriting-dataset), which was collected by us. It is composed of 33122 segments of handwriting texts (crops) in Russian and splited into train, and test sets with a split of 95%, 5%, respectively.
 
 For training we used SGD and the increasing dropout from 0.1 to 0.6; the learning rate is constant and equals to 0.001, whereas the batch size is increased starting with 16.
 
 # Metrics
 
+Models are tested on the [Cyrillic Handwriting Dataset](https://www.kaggle.com/datasets/constantinwerner/cyrillic-handwriting-dataset)
+
 ## model1
 
 **Word Error Rate**
 |   | w/ CASE  | w/o CASE  |
-|---|---|---|---|---|
+|---|---|---|
 |w/ PUNCT   | 0.46  | 0.44  |
 |w/o PUNCT   | 0.42  | 0.41  |
 
 **Character Error Rate**
 |   | w/ CASE  | w/ PUNCT  |
-|---|---|---|---|---|
+|---|---|---|
 |w/ CASE   |  0.09 | 0.09  |
 |w/o PUNCT   | 0.09  | 0.09  |
 
@@ -51,12 +53,12 @@ For training we used SGD and the increasing dropout from 0.1 to 0.6; the learnin
 
 **Word Error Rate**
 |   | w/ CASE  | w/o CASE  |
-|---|---|---|---|---|
+|---|---|---|
 |w/ PUNCT   | 0.43 | 0.41 |
 |w/o PUNCT   | 0.4 | 0.38 |
 
 **Character Error Rate**
 |   | w/ CASE  | w/o CASE  |
-|---|---|---|---|---|
+|---|---|---|
 |w/ PUNCT   | 0.1 | 0.09 |
 |w/o PUNCT   | 0.09 | 0.09 |
