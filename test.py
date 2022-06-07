@@ -5,7 +5,7 @@ import pathlib
 sys.path.append(str(pathlib.Path(__file__).parent.resolve())+'/src')
 
 from const import PATH_TEST_DIR, PATH_TEST_LABELS, WEIGHTS_PATH, PATH_TEST_RESULTS
-from config import MODEL, N_HEADS, ENC_LAYERS, DEC_LAYERS,\
+from config import MODEL, N_HEADS, ENC_LAYERS, DEC_LAYERS, CASE, PUNCT, \
                   DEVICE, HIDDEN, BATCH_SIZE, ALPHABET, TEST_TRANSFORMS
 
 from utils import generate_data, process_data 
@@ -39,14 +39,14 @@ if WEIGHTS_PATH != None:
   model.load_state_dict(torch.load(WEIGHTS_PATH))
 
 criterion = torch.nn.CrossEntropyLoss(ignore_index=char2idx['PAD'])
-metrics, result = evaluate(model, criterion, test_loader)
+metrics, result = evaluate(model, criterion, test_loader, case=CASE, punct=PUNCT)
 
 if PATH_TEST_RESULTS != None:
   f = open(PATH_TEST_RESULTS, 'w')
-  f.write("true\tpredicted\tcer\n")
+  f.write("true\tpredicted\twer\n")
   for i in range(len(result['true'])): 
     f.write(result['true'][i]+\
             '\t'+result['predicted'][i]+\
-            '\t'+str(result['cer'][i])+'\n')
-
+            '\t'+str(result['wer'][i])+'\n')
+print(f'PUNCT: {PUNCT}, CASE: {CASE}')
 print(metrics)
