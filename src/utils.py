@@ -246,19 +246,17 @@ def prediction(model, test_dir, char2idx, idx2char):
 
     with torch.no_grad():
         for filename in os.listdir(test_dir):
-            img = Image.open(test_dir + filename)
-            if CHANNELS == 1:
-              img = img.convert('L')
-            else:
-              img = img.convert('RGB')
+            img = Image.open(test_dir + filename).convert('RGB')
 
             img = process_image(np.asarray(img)).astype('uint8')
             img = img / img.max()
             img = np.transpose(img, (2, 0, 1))
 
             src = torch.FloatTensor(img).unsqueeze(0).to(DEVICE)
+            if CHANNELS == 1:
+              src = transforms.Grayscale(CHANNELS)(src)
             out_indexes = model.predict(src)
-            pred = indicies_to_text(out_indexes[0][1:-2], idx2char)
+            pred = indicies_to_text(out_indexes[0], idx2char)
             preds[filename] = pred
 
     return preds
