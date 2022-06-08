@@ -5,7 +5,7 @@ import random
 
 
 ### MODEL ### 
-MODEL = 'model1'
+MODEL = 'model2'
 HIDDEN = 512
 ENC_LAYERS = 2
 DEC_LAYERS = 2
@@ -22,10 +22,10 @@ ALPHABET = ['PAD', 'SOS', ' ', '!', '"', '%', '(', ')', ',', '-', '.', '/',
             
 ### TRAINING ###
 BATCH_SIZE = 16
-DROPOUT = 0.5
+DROPOUT = 0.2
 N_EPOCHS = 128
 CHECKPOINT_FREQ = 10 # save checkpoint every 10 epochs
-DEVICE = 'cuda:1' #torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = 'cuda:0' # or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 RANDOM_SEED = 42
 SCHUDULER_ON = True # "ReduceLROnPlateau"
 PATIENCE = 5 # for ReduceLROnPlateau
@@ -39,7 +39,7 @@ PUNCT = False # are punctuation marks taken into account
 ### INPUT IMAGE PARAMETERS ###
 WIDTH = 256
 HEIGHT = 64
-CHANNELS = 3 # 3 channels if model1
+CHANNELS = 1 # 3 channels if model1
 
 
 ### AUGMENTATIONS ###
