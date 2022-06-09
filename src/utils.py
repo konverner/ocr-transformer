@@ -59,21 +59,23 @@ def process_data(image_dir, labels_dir, ignore=[]):
     img2label = dict()
 
     raw = open(labels_dir, 'r', encoding='utf-8').read()
-    temp = raw.split('\n')
-    for t in temp:
+    lines = raw.split('\n')
+    for line in lines:
         try:
-            x = t.split('\t')
+            filename, label = line.split('\t')
+            if len(label) == 0:
+              print("BLAH:", line)
             flag = False
             for item in ignore:
-                if item in x[1]:
+                if item in label:
                     flag = True
             if flag == False:
-                img2label[image_dir + x[0]] = x[1]
-                for char in x[1]:
+                img2label[image_dir + filename] = label
+                for char in label:
                     if char not in chars:
                         chars.append(char)
         except:
-            print('ValueError:', x)
+            print('Bad line:', line)
             pass
 
     all_labels = sorted(list(set(list(img2label.values()))))
@@ -106,6 +108,13 @@ def char_error_rate(p_seq1, p_seq2):
     p2c = dict(zip(p_vocab, range(len(p_vocab))))
     c_seq1 = [chr(p2c[p]) for p in p_seq1]
     c_seq2 = [chr(p2c[p]) for p in p_seq2]
+    if len(c_seq1) == 0 or len(c_seq2) != 0:
+      return 1.0
+    if len(c_seq1) == 0 or len(c_seq2) != 0:
+      return 1.0
+    if len(c_seq1) == 0 and len(c_seq2) == 0:
+      return 0.0
+
     return editdistance.eval(''.join(c_seq1),
                              ''.join(c_seq2)) / max(len(c_seq1), len(c_seq2))
 
