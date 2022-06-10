@@ -283,57 +283,6 @@ class ToTensor(object):
         return X
 
 
-# MAKE CONFUSION MATRIX ON SYMBOLS
-def confused_chars(string_true, string_predict, conf_dict):
-    """
-  params
-  ---
-  string_true : str
-  string_predict : str
-  conf_dict : dict
-    keys : str
-        symbol
-    values : list of pairs (str,int)
-        the 1st element is symbol
-        the 2nd element is how many times it was mistaken with symbol that is correspondent key
-    e.g. ['O':[['0',15],['o',10]] means that symbol 'O' was mistaken with '0' 15 times and with 'o' 10 times
-
-  returns
-  ---
-  conf_dict : dict
-
-  """
-    for i in range(len(string_true)):
-        if string_true[i] != string_predict[i]:
-            if string_true[i] not in conf_dict.keys():
-                conf_dict[string_true[i]] = [[string_predict[i], 1]]
-            else:
-                flag = False
-                for j in range(len(conf_dict[string_true[i]])):
-                    if conf_dict[string_true[i]][j][0] == string_predict[i]:
-                        conf_dict[string_true[i]][j][1] += 1
-                        flag = True
-                        break
-                if flag == False:
-                    conf_dict[string_true[i]].append([string_predict[i], 1])
-
-    return conf_dict
-
-
-# MAKE VISUALIZATION OF CONFUSION MATRIX
-def print_confuse_dict(PATH: str):
-    """
-    PATH : path to pickle file with confuse matrix
-    """
-    PATH = PATH
-    d = pickle.load(open(PATH, 'rb'))
-    for d_i in d.items():
-        print(d_i[0])
-        xs, ys = [*zip(*d_i[1])]
-        plt.bar(xs, ys, align='center')
-        plt.show()
-
-
 def log_config(model):
     print('transformer layers: {}'.format(model.enc_layers))
     print('transformer heads: {}'.format(model.transformer.nhead))
