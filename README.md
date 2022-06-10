@@ -20,7 +20,7 @@ Fig. 2 -- Diagram of model2
 
 # Get Started
 
-Firstly, set constants in ```const.py``` file, namely, paths to files. Secondly, edit the configurations of a model and traning processes if needed.
+Firstly, set constants in ```const.py``` file, namely, paths to files. Secondly, edit the configurations of a model and traning processes ```config.py``` if needed.
 
 Example of scripts launching see in [this notebook](https://github.com/conwerner/ocr-transformer/blob/master/notebooks/ocr_scripts.ipynb).
 
