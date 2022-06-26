@@ -38,7 +38,6 @@ def train(model, optimizer, criterion, train_loader):
 def fit(model, optimizer, scheduler, criterion, train_loader, val_loader, start_epoch=0, end_epoch=24):
     metrics = []
     for epoch in range(start_epoch, end_epoch):
-      epoch_metrics = {}
       start_time = time()
       train_loss = train(model, optimizer, criterion, train_loader)
       end_time = time()

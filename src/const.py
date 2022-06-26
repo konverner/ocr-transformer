@@ -1,11 +1,13 @@
-DIR = '/home/kverner/ocr/' # work directory
-PATH_TEST_DIR = DIR+'test/'
-PATH_TEST_LABELS =  DIR + 'test.tsv'
-PATH_TRAIN_DIR =  DIR + 'train_images/'
-PATH_TRAIN_LABELS =  DIR + 'train_labels.tsv'
-PREDICT_PATH = DIR + "test/"
-CHECKPOINTS_PATH = DIR
-FROM_CHECKPOINT_PATH = DIR + "ocr_transformer_rn50_4h2l_64x256.pt" # if not None then training start with this checkpoint
-WEIGHTS_PATH = DIR + "ocr_transformer_rn50_4h2l_64x256.pt"
-PATH_TEST_RESULTS = DIR + '/test_rn50_4h2l_result.tsv'
-TRAIN_LOG = DIR + 'train_log.tsv'
+from pathlib import Path
+
+DIR = Path.cwd() # work directory
+PATH_TEST_DIR = Path(DIR, 'test')
+PATH_TEST_LABELS = Path( DIR, 'test.tsv')
+PATH_TRAIN_DIR = Path( DIR, 'train_images')
+PATH_TRAIN_LABELS = Path( DIR, 'train_labels.tsv')
+PREDICT_PATH = Path(DIR, 'test')
+CHECKPOINTS_PATH = Path(DIR)
+FROM_CHECKPOINT_PATH = Path(DIR, 'ocr_transformer_rn50_4h2l_64x256.pt') # if not None then training start with this checkpoint
+WEIGHTS_PATH = Path(DIR, 'ocr_transformer_rn50_4h2l_64x256.pt')
+PATH_TEST_RESULTS = Path(DIR, 'test_rn50_4h2l_result.tsv')
+TRAIN_LOG = Path(DIR, 'train_log.tsv')
