@@ -63,14 +63,12 @@ def process_data(image_dir, labels_dir, ignore=[]):
     for line in lines:
         try:
             filename, label = line.split('\t')
-            if len(label) == 0:
-              print("BLAH:", line)
             flag = False
             for item in ignore:
                 if item in label:
                     flag = True
             if flag == False:
-                img2label[image_dir + filename] = label
+                img2label[image_dir / filename] = label
                 for char in label:
                     if char not in chars:
                         chars.append(char)
