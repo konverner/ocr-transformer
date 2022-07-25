@@ -3,8 +3,8 @@ from pathlib import Path
 DIR = Path.cwd() # work directory
 PATH_TEST_DIR = Path(DIR, 'test')
 PATH_TEST_LABELS = Path( DIR, 'test.tsv')
-PATH_TRAIN_DIR = Path( DIR, 'train_images')
-PATH_TRAIN_LABELS = Path( DIR, 'train_labels.tsv')
+PATH_TRAIN_DIR = Path( DIR, 'train')
+PATH_TRAIN_LABELS = Path( DIR, 'train.tsv')
 PREDICT_PATH = Path(DIR, 'test')
 CHECKPOINTS_PATH = Path(DIR)
 FROM_CHECKPOINT_PATH = Path(DIR, 'ocr_transformer_rn50_4h2l_64x256.pt') # if not None then training start with this checkpoint
