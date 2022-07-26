@@ -69,4 +69,4 @@ else:
 print(f'checkpoints are saved in {CHECKPOINTS_PATH} every {CHECKPOINT_FREQ} epochs')
 for epoch in range(1, N_EPOCHS, CHECKPOINT_FREQ):
   fit(model, optimizer, scheduler, criterion, train_loader, test_loader, epoch, epoch+CHECKPOINT_FREQ)
-  torch.save(model.state_dict(), CHECKPOINTS_PATH+'checkpoint_{}.pt'.format(epoch / CHECKPOINT_FREQ))
+  torch.save(model.state_dict(), CHECKPOINTS_PATH / 'checkpoint_{}.pt'.format(epoch / CHECKPOINT_FREQ))
