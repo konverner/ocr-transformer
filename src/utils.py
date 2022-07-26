@@ -220,7 +220,7 @@ def evaluate(model, criterion, loader, case=True, punct=True):
             for i in range(len(true_phrases)):
               result['true'].append(true_phrases[i])
               result['predicted'].append(pred_phrases[i])
-              result['wer'].append(char_error_rate(true_phrases[i], pred_phrases[i]))
+              result['cer'].append(char_error_rate(true_phrases[i], pred_phrases[i]))
 
     for key in metrics.keys():
       metrics[key] /= len(loader)
