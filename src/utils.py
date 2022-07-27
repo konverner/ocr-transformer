@@ -191,7 +191,7 @@ def evaluate(model, criterion, loader, case=True, punct=True):
     """
     model.eval()
     metrics = {'loss': 0, 'wer': 0, 'cer': 0}
-    result = {'true': [], 'predicted': [], 'wer': []}
+    result = {'true': [], 'predicted': [], 'cer': []}
     with torch.no_grad():
         for (src, trg) in loader:
             src, trg = src.to(DEVICE), trg.to(DEVICE)
